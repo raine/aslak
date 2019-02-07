@@ -1,0 +1,12 @@
+@import "variables";
+@import "mixins";
+
+body {
+  height: 100vh;
+  background-color: hsla(0, 0%, 97%, 1);
+  background: -webkit-linear-gradient(
+    hsl(0, 0%, 95%),
+    hsl(0, 0%, 97%),
+    hsl(0, 0%, 95%)
+  );
+}

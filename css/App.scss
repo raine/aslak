@@ -1,0 +1,42 @@
+@import 'variables';
+@import 'breakpoints';
+
+.background {
+  font-size: 6em;
+  line-height: 0.75;
+  word-break: break-all;
+  color: hsla(0, 0%, 99%, 1);
+  user-select: none;
+  letter-spacing: -0.3rem;
+  position: fixed;
+  top: -2em;
+  left: -0em;
+  text-shadow: 4px 4px 1px hsl(0, 0%, 95%);
+  transform: skewY(-12deg);
+  z-index: -1;
+  font-weight: 600;
+}
+
+.app-container {
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 1rem;
+  max-width: 540px;
+
+  @include media-breakpoint-up(sm) {
+    max-width: 840px;
+  }
+}
+
+.channels {
+  display: grid;
+  grid-gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+
+  .channel {
+    background: #fff;
+    border-radius: 3px;
+    height: 100px;
+    border: 1px solid #ccc;
+  }
+}
