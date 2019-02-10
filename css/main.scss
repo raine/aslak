@@ -1,12 +1,20 @@
-@import "variables";
-@import "mixins";
+@import 'variables';
+@import 'mixins';
+
+html {
+  height: 100%;
+}
 
 body {
-  height: 100vh;
-  background-color: hsla(0, 0%, 97%, 1);
-  background: -webkit-linear-gradient(
+  height: 100%;
+  background-color: hsl(0, 0%, 95%);
+  background-image: linear-gradient(
     hsl(0, 0%, 95%),
     hsl(0, 0%, 97%),
     hsl(0, 0%, 95%)
   );
+
+  font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
 }

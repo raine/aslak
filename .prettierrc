@@ -1,5 +1,5 @@
 {
-  "printWidth": 80,
+  "printWidth": 70,
   "proseWrap": "always",
   "semi": false,
   "singleQuote": true,

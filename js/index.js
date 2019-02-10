@@ -10,9 +10,9 @@ if (token) {
   render(<App slack={client} />, document.getElementById('root'))
 }
 
-// Disable HMR
-if (module.hot) {
-  module.hot.dispose(() => {
-    window.location.reload()
-  })
-}
+// // Disable HMR
+// if (module.hot) {
+//   module.hot.dispose(() => {
+//     window.location.reload()
+//   })
+// }
