@@ -4,38 +4,29 @@ import React, {
   useEffect,
   useContext
 } from 'react'
-import { FlexibleXYPlot, LineSeries } from 'react-vis'
+// import { FlexibleXYPlot, LineSeries } from 'react-vis'
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis
+} from 'recharts'
+import { DateTime } from 'luxon'
 import { timeframeToDateTime } from './time'
 import * as d3scale from 'd3-scale'
+import * as d3time from 'd3-time'
 import * as L from 'partial.lenses'
-import * as _ from 'lodash/fp'
 import cached from './cached'
+import Background from './Background'
+
 import '../css/reboot.css'
 import '../css/main.scss'
 import '../css/App.scss'
-import 'react-vis/dist/style.css'
+// import 'react-vis/dist/style.css'
 
 const TIMEFRAME = '7d'
 const CHANNELS_CACHE_TTL = 1440
-const WEIGHTS = [300, 400, 500, 600]
-const strToNumber = (str) =>
-  _.sum(str.split('').map((c) => c.charCodeAt(0)))
-const pickFromArray = (arr, str) => {
-  const i = strToNumber(str)
-  const len = arr.length
-  return arr[((i % len) + len) % len]
-}
-
-const Background = ({ channels }) => (
-  <div className="background">
-    {channels.map((c) => (
-      <span
-        key={c.id}
-        style={{ fontWeight: pickFromArray(WEIGHTS, c.id) }}
-      >{`#${c.name} `}</span>
-    ))}
-  </div>
-)
 
 const updateChannelMessages = (id, messages) => (channels) =>
   L.modify(
@@ -44,16 +35,18 @@ const updateChannelMessages = (id, messages) => (channels) =>
     channels
   )
 
-const toActivityData = (timeframe, tickCount, data) => {
-  if (!data.length) return []
+const makeTicks = (timeframe, step) => {
   const fromDate = timeframeToDateTime(timeframe).toJSDate()
   const toDate = new Date()
-  const ticks = d3scale
+  return d3scale
     .scaleTime()
     .domain([fromDate, toDate])
-    .ticks(tickCount)
+    .ticks(step)
+    .map((x) => x.getTime())
+}
 
-  return ticks.map((tick, idx, all) => {
+const toActivityData = (ticks, data) =>
+  ticks.map((tick, idx, all) => {
     const nextTick = all[idx + 1]
     return {
       x: tick,
@@ -66,28 +59,62 @@ const toActivityData = (timeframe, tickCount, data) => {
       )
     }
   })
-}
 
 const Channel = ({ name, messages = [] }) => {
-  const { timeframe, tickCount } = useContext(Options)
+  const { timeframe } = useContext(Options)
+  const dataTicks = makeTicks(
+    timeframe,
+    // prettier-ignore
+    timeframe === '1h' ? d3time.timeMinute.every(5)  :
+    timeframe === '1d' ? d3time.timeMinute.every(30) :
+    timeframe === '7d' ? d3time.timeHour.every(1)    : null
+  )
+  const chartTicks = makeTicks(
+    timeframe,
+    // prettier-ignore
+    timeframe === '1h' ? d3time.timeMinute.every(60) :
+    timeframe === '1d' ? d3time.timeHour.every(6)    :
+    timeframe === '7d' ? d3time.timeDay.every(1)     : null
+  )
+
+  const data = toActivityData(dataTicks, messages)
 
   return (
     <div className="channel">
       <div className="name">#{name}</div>
       <div className="plot">
-        <FlexibleXYPlot
-          margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          animation={{ duration: 500 }}
-        >
-          <LineSeries
-            data={toActivityData(
-              timeframe,
-              tickCount,
-              messages
-            )}
-            curve={'curveBasis'}
-          />
-        </FlexibleXYPlot>
+        <ResponsiveContainer>
+          <LineChart data={data}>
+            <XAxis
+              tickFormatter={(tick) =>
+                // prettier-ignore
+                DateTime.fromMillis(tick).toFormat(
+                  timeframe === '1h' ? 'HH:mm' :
+                  timeframe === '1d' ? 'HH:mm' : 
+                  timeframe === '7d' ? 'ccc'   : null
+                )
+              }
+              height={15}
+              tickSize={3}
+              interval={0}
+              ticks={chartTicks}
+              tick={{ fontSize: 10 }}
+              dataKey="x"
+              scale="time"
+              type="number"
+              domain={['dataMin', 'dataMax']}
+            />
+            <Line
+              id={name}
+              dot={false}
+              type="basis"
+              dataKey="y"
+              stroke="#8884d8"
+              strokeWidth={1}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )
@@ -96,38 +123,54 @@ const Channel = ({ name, messages = [] }) => {
 const Options = React.createContext()
 
 const App = ({ slack }) => {
-  const [initialized, setInitialized] = useState(false)
   const [allChannels, setAllChannels] = useState([])
   const [channels, setChannels] = useState([])
   const [timeframe, setTimeframe] = useState(TIMEFRAME)
-  const tickCount = 70
 
   useEffect(() => {
-    if (!initialized) {
-      cached(
-        'channels',
-        CHANNELS_CACHE_TTL,
-        slack.getChannels
-      )().then((allChannels) => {
-        const channels = allChannels.slice(4, 10)
+    // slack.getCached('conversation.history', {
+    //   limit: 1000,
+    //   channel: 'C029SKMGS'
+    // })
+    // .then(console.log)
+
+    slack.getChannelsCached().then(
+      (allChannels) => {
+        // const channels = allChannels.filter(
+        //   (x) => x.name === 'hobby-shitposting'
+        // )
+        const channels = allChannels.filter((c) =>
+          [
+            'autokerho',
+            'hobby-stanga-cycling',
+            'politics',
+            'heirs',
+            'help-admin',
+            'design',
+            'tech-web',
+            'team-gossip',
+            'spacelab',
+            'investing',
+            'sylvanerstallone',
+            'hobby-video-gaming'
+          ].includes(c.name)
+        )
         setAllChannels(allChannels)
         setChannels(channels)
         slack
-          .streamChannelsHistory(timeframe, channels)
+          .streamChannelsHistoryCached(timeframe, channels)
           .onValue(([channelId, messages]) => {
             setChannels(updateChannelMessages(channelId, messages))
           })
           .log()
-      })
-
-      setInitialized(true)
-    }
-  })
+      }
+    )
+  }, [])
 
   return (
-    <Options.Provider value={{ timeframe, tickCount }}>
+    <Options.Provider value={{ timeframe }}>
       <Fragment>
-        <Background channels={allChannels} />
+        <Background channels={allChannels.slice(0, 60)} />
         {channels.length > 0 && (
           <div className="app-container">
             <div className="channels">
@@ -143,3 +186,12 @@ const App = ({ slack }) => {
 }
 
 export default App
+
+// <YAxis
+//             tick={{ fontSize: 12 }}
+//             axisLine={false}
+//             tickLine={false}
+//             width={25}
+//             domain={['dataMin', 'dataMax']}
+//             allowDecimals={false}
+//           />

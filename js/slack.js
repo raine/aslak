@@ -2,8 +2,9 @@
 
 import qs from 'querystring'
 import * as _ from 'lodash/fp'
-import { timeframeToDateTime, fromSlackTimestamp } from './time'
+import { timeframeToDateTime, fromSlackTimestamp, floorInterval } from './time'
 import K from 'kefir'
+import lscache from 'lscache'
 
 const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID
 const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET
@@ -11,22 +12,56 @@ const X_WWW_FORM_URLENCODED = {
   'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
 }
 
-export const login = () =>
-  initSlack(SLACK_CLIENT_ID, SLACK_CLIENT_SECRET)
-export const init = (token) => {
-  const client = {
-    get: get(token),
-    getAll: getAll(token),
-    getAllStreamed: getAllStreamed(token)
+// 53-bit hash function from stackoverflow
+var cyrb53 = function(str, seed = 0) {
+  var h1 = 0xdeadbeef ^ seed,
+    h2 = 0x41c6ce57 ^ seed
+  for (var i = 0, ch; i < str.length; i++) {
+    ch = str.charCodeAt(i)
+    h1 = Math.imul(h1 ^ ch, 2654435761)
+    h2 = Math.imul(h2 ^ ch, 1597334677)
   }
+  h1 =
+    Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^
+    Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+  h2 =
+    Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^
+    Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0)
+}
 
-  return {
-    ...client,
-    getChannels: getChannels(client),
-    streamChannelHistory: streamChannelHistory(client),
-    streamChannelsHistory: streamChannelsHistory(client),
-    getMessagePermaLink: getMessagePermaLink(client)
-  }
+const lsMemoize = (fn, ttl, keyPrefix = '') => (...args) => {
+  const key = cyrb53(`${keyPrefix}_${JSON.stringify(args)}`)
+  const cached = lscache.get(key)
+  return cached
+    ? Promise.resolve(cached)
+    : fn(...args).then((res) => {
+        lscache.set(key, res, ttl)
+        return res
+      })
+}
+
+export const login = () => initSlack(SLACK_CLIENT_ID, SLACK_CLIENT_SECRET)
+
+export const init = (token, cacheTTL = 5) => {
+  const api = {}
+  api.get = get(token, fetchJSON)
+  api.getCached = get(token, fetchJSONCached(cacheTTL))
+  api.getAll = getAll(api.get)
+  api.getAllStreamed = getAllStreamed(api.get)
+  api.getAllStreamedCached = getAllStreamed(api.getCached)
+  api.getChannels = getChannels(api.getAll)
+  api.getChannelsCached = getChannels(getAll(api.getCached))
+  api.streamChannelHistory = streamChannelHistory(api.getAllStreamed)
+  api.streamChannelHistoryCached = streamChannelHistory(
+    api.getAllStreamedCached
+  )
+  api.streamChannelsHistory = streamChannelsHistory(api.streamChannelHistory)
+  api.streamChannelsHistoryCached = streamChannelsHistory(
+    api.streamChannelHistoryCached
+  )
+  api.getMessagePermaLink = getMessagePermaLink(api.get)
+  return api
 }
 
 const fetchJSON = (...params) =>
@@ -41,10 +76,9 @@ const fetchJSON = (...params) =>
       throw err
     })
 
-const get = (token) => (method, params) =>
-  fetchJSON(
-    `https://slack.com/api/${method}?` +
-      qs.stringify({ token, ...params }),
+const get = (token, fetch) => (method, params) =>
+  fetch(
+    `https://slack.com/api/${method}?` + qs.stringify({ token, ...params }),
     {
       method: 'get',
       headers: X_WWW_FORM_URLENCODED
@@ -56,7 +90,7 @@ const get = (token) => (method, params) =>
       body: json,
       next: next_cursor
         ? () =>
-            get(token)(method, {
+            get(token, fetch)(method, {
               ...params,
               cursor: next_cursor
             })
@@ -64,17 +98,19 @@ const get = (token) => (method, params) =>
     }
   })
 
-const getAll = (token) => (method, params, property) => {
+const fetchJSONCached = (ttl) => lsMemoize(fetchJSON, ttl)
+
+const getAll = (get) => (method, params, property) => {
   const recur = (acc, promise) =>
     promise.then(({ body, next }) => {
       const xs = acc.concat(body[property])
       return next ? recur(xs, next()) : xs
     })
 
-  return recur([], get(token)(method, params))
+  return recur([], get(method, params))
 }
 
-const getAllStreamed = (token) => (method, params, property) =>
+const getAllStreamed = (get) => (method, params, property) =>
   K.stream(({ emit, end }) => {
     const recur = (promise) =>
       promise.then(({ body, next }) => {
@@ -83,7 +119,7 @@ const getAllStreamed = (token) => (method, params, property) =>
         else end()
       })
 
-    recur(get(token)(method, params))
+    recur(get(method, params))
   })
 
 const formatOauthUri = (clientId) =>
@@ -127,19 +163,17 @@ const initSlack = (clientId, clientSecret) => {
   return localStorage.getItem('access_token')
 }
 
-const getChannels = (client) => () =>
-  client
-    .getAll(
-      'conversations.list',
-      { limit: 1000, exclude_archived: true },
-      'channels'
-    )
-    .then(
-      _.pipe([
-        _.orderBy((x) => x.num_members, ['desc']),
-        _.map(_.pick(['id', 'name', 'num_members']))
-      ])
-    )
+const getChannels = (getAll) => () =>
+  getAll(
+    'conversations.list',
+    { limit: 1000, exclude_archived: true },
+    'channels'
+  ).then(
+    _.pipe([
+      _.orderBy((x) => x.num_members, ['desc']),
+      _.map(_.pick(['id', 'name', 'num_members']))
+    ])
+  )
 
 const sanitizeMessages = _.pipe([
   _.reject((msg) => msg.subtype === 'bot_message'),
@@ -151,31 +185,24 @@ const sanitizeMessages = _.pipe([
   )
 ])
 
-const streamChannelHistory = (client) => (timeframe, id) =>
-  client
-    .getAllStreamed(
-      'conversations.history',
-      {
-        limit: 500,
-        channel: id,
-        oldest: timeframeToDateTime(timeframe).toSeconds()
-      },
-      'messages'
-    )
+const streamChannelHistory = (getAllStreamed) => (timeframe, id) =>
+  getAllStreamed(
+    'conversations.history',
+    {
+      limit: 1000,
+      channel: id,
+      oldest: floorInterval(5, timeframeToDateTime(timeframe)).toSeconds()
+    },
+    'messages'
+  )
     // At this point, strip data that is not going to be useful
     .map(sanitizeMessages)
 
-const streamChannelsHistory = (client) => (timeframe, channels) =>
+const streamChannelsHistory = (streamChannelHistory) => (timeframe, channels) =>
   K.sequentially(0, channels).flatMapConcurLimit(
-    (c) =>
-      streamChannelHistory(client)(timeframe, c.id).map((xs) => [
-        c.id,
-        xs
-      ]),
-    5
+    (c) => streamChannelHistory(timeframe, c.id).map((xs) => [c.id, xs]),
+    10
   )
 
-const getMessagePermaLink = (client) => (channel, message_ts) =>
-  client
-    .get('chat.getPermalink', { channel, message_ts })
-    .then(_.get('body'))
+const getMessagePermaLink = (get) => (channel, message_ts) =>
+  get('chat.getPermalink', { channel, message_ts }).then(_.get('body'))
