@@ -61,6 +61,7 @@ export const init = (token, cacheTTL = 5) => {
     api.streamChannelHistoryCached
   )
   api.getMessagePermaLink = getMessagePermaLink(api.get)
+  api.getEmojiList = getEmojiList(api.get)
   return api
 }
 
@@ -68,8 +69,8 @@ const fetchJSON = (...params) =>
   fetch(...params)
     .then((res) => Promise.all([res.ok, res.json()]))
     .then(([ok, json]) => {
-      if (!ok) throw new Error(json)
-      return json
+      if (!ok || !json.ok) throw new Error(JSON.stringify(json))
+      else return json
     })
     .catch((err) => {
       console.error(err)
@@ -126,7 +127,7 @@ const formatOauthUri = (clientId) =>
   'https://slack.com/oauth/authorize?' +
   qs.stringify({
     client_id: clientId,
-    scope: 'channels:history channels:read'
+    scope: 'channels:history channels:read emoji:read'
     // TODO: specify team
   })
 
@@ -206,3 +207,5 @@ const streamChannelsHistory = (streamChannelHistory) => (timeframe, channels) =>
 
 const getMessagePermaLink = (get) => (channel, message_ts) =>
   get('chat.getPermalink', { channel, message_ts }).then(_.get('body'))
+
+const getEmojiList = (get) => () => get('emoji.list').then(_.get('body.emoji'))

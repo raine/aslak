@@ -1,0 +1,21 @@
+.channel {
+  background: #fff;
+  border-radius: 4px;
+  height: 164px;
+  padding: 0.3rem 0.5rem;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+
+  .name {
+    border-bottom: 1px solid hsl(0, 0%, 94%);
+    padding-bottom: 4px;
+  }
+
+  .plot {
+    flex-grow: 1;
+    user-select: none;
+    position: relative;
+  }
+}

@@ -15,12 +15,15 @@
   transform: skewY(-12deg);
   z-index: -1;
   font-weight: 600;
+
+  @include media-breakpoint-up(xl) {
+    font-size: 6vw;
+  }
 }
 
 .app-container {
   margin-right: auto;
   margin-left: auto;
-  max-width: 540px;
   background: hsla(0, 0%, 0%, 0.05);
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.15);
   padding: 0.7rem;
@@ -34,30 +37,23 @@
   @include media-breakpoint-up(sm) {
     max-width: 840px;
   }
+
+  @include media-breakpoint-up(lg) {
+    max-width: 1200px;
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .channels {
   display: grid;
   grid-gap: 0.7rem;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
 
-  .channel {
-    background: #fff;
-    border-radius: 4px;
-    height: 120px;
-    padding: 0.3rem 0.5rem;
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-    font-size: 15px;
-    display: flex;
-    flex-direction: column;
+  @include media-breakpoint-up(sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-    .name {
-      border-bottom: 1px solid hsl(0, 0%, 94%);
-    }
-
-    .plot {
-      flex-grow: 1;
-      user-select: none;
-    }
+  @include media-breakpoint-up(lg) {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
