@@ -62,6 +62,8 @@ export const init = (token, cacheTTL = 5) => {
   )
   api.getMessagePermaLink = getMessagePermaLink(api.get)
   api.getEmojiList = getEmojiList(api.get)
+  api.getCachedTeamId = getCachedTeamId
+  api.formatChannelLink = formatChannelLink
   return api
 }
 
@@ -148,8 +150,9 @@ const initSlack = (clientId, clientSecret) => {
 
   if (query.code) {
     oauthAccess(clientId, clientSecret, query.code)
-      .then(({ access_token }) => {
-        localStorage.setItem('access_token', access_token)
+      .then((res) => {
+        localStorage.setItem('access_token', res.access_token)
+        localStorage.setItem('team_id', res.team_id)
         window.history.replaceState(
           null,
           document.title,
@@ -181,7 +184,11 @@ const sanitizeMessages = _.pipe([
   _.map(
     _.pipe([
       _.pick(['ts', 'user', 'reactions']),
-      (msg) => ({ ...msg, ts: fromSlackTimestamp(msg.ts).toJSDate() })
+      (msg) => ({
+        ...msg,
+        slackTs: msg.ts,
+        ts: fromSlackTimestamp(msg.ts).toJSDate()
+      })
     ])
   )
 ])
@@ -209,3 +216,8 @@ const getMessagePermaLink = (get) => (channel, message_ts) =>
   get('chat.getPermalink', { channel, message_ts }).then(_.get('body'))
 
 const getEmojiList = (get) => () => get('emoji.list').then(_.get('body.emoji'))
+
+const getCachedTeamId = () => localStorage.getItem('team_id')
+
+const formatChannelLink = (teamId, channelId) =>
+  `slack://channel?id=${channelId}&team=${teamId}`

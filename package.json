@@ -29,6 +29,7 @@
     "partial.lenses": "^14.17.0",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
+    "react-spring": "^8.0.7",
     "react-vis": "^1.11.6",
     "recharts": "^1.4.3",
     "sass": "^1.17.0",

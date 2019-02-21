@@ -62,7 +62,7 @@ const App = ({ slack }) => {
   }, [])
 
   return (
-    <Options.Provider value={{ timeframe }}>
+    <Options.Provider value={{ timeframe, slack }}>
       <Fragment>
         <Background channels={allChannels.slice(0, 60)} />
         {channels.length > 0 && (

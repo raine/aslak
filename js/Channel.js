@@ -39,6 +39,7 @@ const getNormalizedReactions = (messages, data) =>
     _.flatMap((msg) =>
       msg.reactions.map((reactions) => ({
         ..._.omit(['users'], reactions),
+        slackTs: msg.slackTs,
         ts: msg.ts.getTime()
       }))
     ),
@@ -53,10 +54,10 @@ const getNormalizedReactions = (messages, data) =>
     _.uniqBy((r) => r.x)
   ])(messages)
 
-const PLOT_MARGIN = { left: 30, right: 10, top: 25, bottom: 30 }
+const PLOT_MARGIN = { left: 32, right: 10, top: 40, bottom: 35 }
 
-const Channel = React.memo(({ name, emojis, messages = [] }) => {
-  const { timeframe } = useContext(Options)
+const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
+  const { timeframe, slack } = useContext(Options)
   const xyPlotRef = useRef(null)
   const dataTicks = makeTicks(
     timeframe,
@@ -73,10 +74,10 @@ const Channel = React.memo(({ name, emojis, messages = [] }) => {
     timeframe === '7d' ? d3time.timeDay.every(1)     : null
   )
   const data = toActivityData(dataTicks, messages)
-  const yMax = _.maxBy((obj) => obj.y, data).y
-  const yDomainMax = yMax === 0 ? 1 : yMax
+  let yMax = _.maxBy((obj) => obj.y, data).y
+  yMax = yMax === 0 ? 1 : yMax
   const plotDims = xyPlotRef.current ? xyPlotRef.current.state : null
-  const yDomain = [0, yDomainMax]
+  const yDomain = [0, Math.ceil(yMax / 10) * 10]
   const xDomain = [_.head(data).x, _.last(data).x]
   const channelReactions = useMemo(
     () => getNormalizedReactions(messages, data),
@@ -85,11 +86,15 @@ const Channel = React.memo(({ name, emojis, messages = [] }) => {
 
   return (
     <div className="channel">
-      <div className="name">#{name}</div>
+      <div className="name">
+        <a href={slack.formatChannelLink(slack.getCachedTeamId(), id)}>
+          #{name}
+        </a>
+      </div>
       <div className="plot">
         <FlexibleWidthXYPlot
           ref={xyPlotRef}
-          height={127}
+          height={150}
           margin={PLOT_MARGIN}
           animation
           xDomain={xDomain}
@@ -110,7 +115,7 @@ const Channel = React.memo(({ name, emojis, messages = [] }) => {
           />
           <YAxis
             tickFormat={(v) => parseInt(v).toString()}
-            tickValues={[0, yMax]}
+            tickValues={yDomain}
             tickSizeInner={0}
             tickSizeOuter={6}
           />
@@ -124,6 +129,7 @@ const Channel = React.memo(({ name, emojis, messages = [] }) => {
             xDomain={xDomain}
             reactions={channelReactions}
             emojis={emojis}
+            channelId={id}
           />
         )}
       </div>
