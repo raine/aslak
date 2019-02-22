@@ -3,7 +3,7 @@ import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
 import emojiShortcodeToChar from '../emojis.json'
-import { useSpring, animated, config } from 'react-spring'
+import { useSpring, animated, interpolate } from 'react-spring'
 import { Options } from './Context'
 
 const fixEmojiName = (name) =>
@@ -14,12 +14,13 @@ const Reaction = React.memo(
     const { slack } = useContext(Options)
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
-    const props = useSpring({
+    const { scale, boxShadow, y } = useSpring({
       to: {
-        transform: `scale(${promote ? '1.3' : '1.0'})`,
+        scale: promote ? 1.25 : 1.0,
         boxShadow: promote
-          ? `0px 0px 8px 1px rgba(0, 0, 0, 0.1)`
-          : `0px 0px 0px 0px rgba(0, 0, 0, 0.0)`
+          ? `0px 0px 8px 1px rgba(0, 0, 0, 0.2)`
+          : `0px 0px 2px 1px rgba(0, 0, 0, 0.1)`,
+        y: promote ? -5 : 0
       },
       config: { mass: 0.5, tension: 250, friction: 20 }
     })
@@ -38,7 +39,11 @@ const Reaction = React.memo(
           left: `calc(${left}px - 12px)`,
           top: 0,
           zIndex: promote ? 1 : null,
-          ...props
+          boxShadow: boxShadow,
+          transform: interpolate(
+            [y, scale],
+            (y, scale) => `translate3d(0px, ${y}px, 0px) scale(${scale})`
+          )
         }}
       >
         <div
