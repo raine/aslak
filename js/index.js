@@ -4,11 +4,9 @@ import React from 'react'
 import { render } from 'react-dom'
 import App from './App'
 
-const token = slack.login()
-if (token) {
-  const client = slack.init(token)
-  render(<App slack={client} />, document.getElementById('root'))
-}
+slack.login().then((token) => {
+  render(<App slack={slack.init(token)} />, document.getElementById('root'))
+})
 
 // // Disable HMR
 // if (module.hot) {

@@ -149,7 +149,7 @@ const initSlack = (clientId, clientSecret) => {
   const baseUrl = window.location.href.replace(/\?.*/, '')
 
   if (query.code) {
-    oauthAccess(clientId, clientSecret, query.code)
+    return oauthAccess(clientId, clientSecret, query.code)
       .then((res) => {
         localStorage.setItem('access_token', res.access_token)
         localStorage.setItem('team_id', res.team_id)
@@ -158,13 +158,14 @@ const initSlack = (clientId, clientSecret) => {
           document.title,
           baseUrl + (query.state ? atob(query.state) : '')
         )
+        return res.access_token
       })
       .catch(console.error)
   } else if (!localStorage.getItem('access_token')) {
     window.location.replace(formatOauthUri(clientId))
   }
 
-  return localStorage.getItem('access_token')
+  return Promise.resolve(localStorage.getItem('access_token'))
 }
 
 const getChannels = (getAll) => () =>
