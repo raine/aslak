@@ -118,7 +118,7 @@ const ReactionOverlay = React.memo(
                 const offsetX = mouseX - r.left
                 return {
                   ...acc,
-                  ...(Math.abs(offsetX) < 12
+                  ...(Math.abs(offsetX) < 15
                     ? { [r.slackTs]: { offsetX } }
                     : {})
                 }
