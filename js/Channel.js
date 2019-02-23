@@ -1,6 +1,6 @@
-import { XYPlot, AreaSeries, LineMarkSeries, XAxis, YAxis } from 'react-vis'
+import { XYPlot, LineMarkSeries, XAxis } from 'react-vis'
 import { DateTime } from 'luxon'
-import React, { useContext, useRef, useMemo, useEffect } from 'react'
+import React, { useContext, useMemo } from 'react'
 import * as d3time from 'd3-time'
 import * as _ from 'lodash/fp'
 import * as d3scale from 'd3-scale'
@@ -59,7 +59,6 @@ const PLOT_MARGIN = { left: 10, right: 10, top: 40, bottom: 35 }
 
 const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
   const { timeframe, slack } = useContext(Options)
-  const xyPlotRef = useRef(null)
   const dataTicks = makeTicks(
     timeframe,
     // prettier-ignore
@@ -77,7 +76,6 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
   const data = toActivityData(dataTicks, messages)
   let yMax = _.maxBy((obj) => obj.y, data).y
   yMax = yMax === 0 ? 1 : yMax
-  const plotDims = xyPlotRef.current ? xyPlotRef.current.state : null
   const yDomain = [0, yMax]
   const xDomain = [_.head(data).x, _.last(data).x]
   const channelReactions = useMemo(
@@ -101,10 +99,9 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
         )}
       </div>
       <AutoSizer>
-        {({ width, height }) => (
+        {({ width }) => (
           <div className="plot">
             <XYPlot
-              ref={xyPlotRef}
               height={150}
               width={width}
               margin={PLOT_MARGIN}
