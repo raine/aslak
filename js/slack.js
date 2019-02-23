@@ -129,7 +129,10 @@ const formatOauthUri = (clientId) =>
   'https://slack.com/oauth/authorize?' +
   qs.stringify({
     client_id: clientId,
-    scope: 'channels:history channels:read emoji:read'
+    scope: 'channels:history channels:read emoji:read',
+    redirect_uri: window.location.href
+      .replace(window.location.hash, '')
+      .replace(/\/$/, '')
     // TODO: specify team
   })
 
