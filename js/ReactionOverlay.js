@@ -14,18 +14,15 @@ const Reaction = React.memo(
     const { slack } = useContext(Options)
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
-    const { scale, boxShadow, y, opacity } = useSpring({
+    const { scale, boxShadow, opacity } = useSpring({
       to: {
         scale: promote ? 1.25 : 1.0,
         boxShadow: promote
           ? `0px 0px 8px 1px rgba(0, 0, 0, 0.2)`
           : `0px 0px 2px 1px rgba(0, 0, 0, 0.1)`,
-        y: promote ? -5 : 0,
         opacity: 1
       },
-      from: {
-        opacity: 0
-      },
+      from: { opacity: 0 },
       config: { mass: 0.5, tension: 250, friction: 20 }
     })
     return (
@@ -40,15 +37,12 @@ const Reaction = React.memo(
             })
         }}
         style={{
-          left: `calc(${left}px - 12px)`,
+          left: `calc(${left}px - 10px)`,
           top: 0,
           zIndex: promote ? 1 : null,
           boxShadow,
           opacity,
-          transform: interpolate(
-            [y, scale],
-            (y, scale) => `translate3d(0px, ${y}px, 0px) scale(${scale})`
-          )
+          transform: interpolate([scale], (scale) => `scale(${scale})`)
         }}
       >
         <div
