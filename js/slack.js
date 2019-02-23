@@ -210,7 +210,7 @@ const streamChannelHistory = (getAllStreamed) => (timeframe, id) =>
 const streamChannelsHistory = (streamChannelHistory) => (timeframe, channels) =>
   K.sequentially(0, channels).flatMapConcurLimit(
     (c) => streamChannelHistory(timeframe, c.id).map((xs) => [c.id, xs]),
-    10
+    5
   )
 
 const getMessagePermaLink = (get) => (channel, message_ts) =>
