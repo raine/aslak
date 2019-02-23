@@ -10,17 +10,18 @@ const fixEmojiName = (name) =>
   name.replace(/\+/g, 'plus').replace(/::skin-tone-\d/, '')
 
 const Reaction = React.memo(
-  ({ emojis, name, count, left, promote, channelId, slackTs }) => {
+  ({ emojis, name, count, left: leftPos, promote, channelId, slackTs }) => {
     const { slack } = useContext(Options)
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
-    const { scale, boxShadow, opacity } = useSpring({
+    const { scale, left, boxShadow, opacity } = useSpring({
       to: {
         scale: promote ? 1.25 : 1.0,
         boxShadow: promote
           ? `0px 0px 8px 1px rgba(0, 0, 0, 0.2)`
           : `0px 0px 2px 1px rgba(0, 0, 0, 0.1)`,
-        opacity: 1
+        opacity: 1,
+        left: leftPos
       },
       from: { opacity: 0 },
       config: { mass: 0.5, tension: 250, friction: 20 }
@@ -37,8 +38,8 @@ const Reaction = React.memo(
             })
         }}
         style={{
-          left: `calc(${left}px - 10px)`,
           top: 0,
+          left: left.interpolate((left) => `calc(${left}px - 10px)`),
           zIndex: promote ? 1 : null,
           boxShadow,
           opacity,
