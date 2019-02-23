@@ -151,8 +151,8 @@ const initSlack = (clientId, clientSecret) => {
   if (query.code) {
     return oauthAccess(clientId, clientSecret, query.code)
       .then((res) => {
-        localStorage.setItem('access_token', res.access_token)
-        localStorage.setItem('team_id', res.team_id)
+        localStorage.setItem('slack_access_token', res.access_token)
+        localStorage.setItem('slack_team_id', res.team_id)
         window.history.replaceState(
           null,
           document.title,
@@ -161,11 +161,11 @@ const initSlack = (clientId, clientSecret) => {
         return res.access_token
       })
       .catch(console.error)
-  } else if (!localStorage.getItem('access_token')) {
+  } else if (!localStorage.getItem('slack_access_token')) {
     window.location.replace(formatOauthUri(clientId))
   }
 
-  return Promise.resolve(localStorage.getItem('access_token'))
+  return Promise.resolve(localStorage.getItem('slack_access_token'))
 }
 
 const getChannels = (getAll) => () =>
@@ -218,7 +218,7 @@ const getMessagePermaLink = (get) => (channel, message_ts) =>
 
 const getEmojiList = (get) => () => get('emoji.list').then(_.get('body.emoji'))
 
-const getCachedTeamId = () => localStorage.getItem('team_id')
+const getCachedTeamId = () => localStorage.getItem('slack_team_id')
 
 const formatChannelLink = (teamId, channelId) =>
   `slack://channel?id=${channelId}&team=${teamId}`
