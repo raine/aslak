@@ -1,9 +1,9 @@
-import React, { useMemo, useRef, useState, useEffect, useContext } from 'react'
+import React, { useMemo, useRef, useState, useContext } from 'react'
 import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
 import emojiShortcodeToChar from '../emojis.json'
-import { useSpring, animated, interpolate } from 'react-spring'
+import { useSpring, animated } from 'react-spring'
 import { Options } from './Context'
 
 const fixEmojiName = (name) =>
@@ -43,7 +43,7 @@ const Reaction = React.memo(
           zIndex: promote ? 1 : null,
           boxShadow,
           opacity,
-          transform: interpolate([scale], (scale) => `scale(${scale})`)
+          transform: scale.interpolate((scale) => `scale(${scale})`)
         }}
       >
         <div
