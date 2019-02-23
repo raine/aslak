@@ -5,6 +5,7 @@ import { render } from 'react-dom'
 import App from './App'
 
 slack.login().then((token) => {
+  if (!token) return
   render(<App slack={slack.init(token)} />, document.getElementById('root'))
 })
 
