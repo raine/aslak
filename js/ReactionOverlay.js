@@ -64,7 +64,7 @@ Reaction.displayName = 'Reaction'
 const getSortedReactions = (xScale, reactions) =>
   _.pipe([
     _.filter(({ count }) => count > 1),
-    _.map((r) => ({ ...r, left: xScale(r.x) })),
+    _.map((r) => ({ ...r, left: xScale(r.ts) })),
     _.sortBy((x) => x.count)
   ])(reactions)
 
