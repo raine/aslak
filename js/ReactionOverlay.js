@@ -1,4 +1,10 @@
-import React, { useMemo, useRef, useState, useContext } from 'react'
+import React, {
+  useMemo,
+  useRef,
+  useState,
+  useContext,
+  useCallback
+} from 'react'
 import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
@@ -68,9 +74,10 @@ const getSortedReactions = (xScale, reactions) =>
     _.sortBy((x) => x.count)
   ])(reactions)
 
-const getCoordsRelativeToRect = ({ left, top }, event) => {
-  return { x: event.clientX - left, y: event.clientY - top }
-}
+const getCoordsRelativeToRect = ({ left, top }, event) => ({
+  x: event.clientX - left,
+  y: event.clientY - top
+})
 
 const ReactionOverlay = React.memo(
   ({ width, left, xDomain, reactions, emojis, channelId }) => {
@@ -87,6 +94,15 @@ const ReactionOverlay = React.memo(
       () => (overlayEl ? overlayEl.getBoundingClientRect() : null),
       [overlayEl, width]
     )
+    const throttledMouseMove = useCallback(
+      _.throttle(50, (ev) => {
+        const { x } = getCoordsRelativeToRect(clientRect, ev)
+        const reaction = _.minBy((r) => Math.abs(r.left - x), sortedReactions)
+        const isNearMouse = reaction && Math.abs(reaction.left - x) < 12
+        setReactionNearMouse(isNearMouse ? reaction : null)
+      }),
+      [clientRect, sortedReactions]
+    )
 
     return (
       <div
@@ -98,10 +114,8 @@ const ReactionOverlay = React.memo(
           left
         }}
         onMouseMove={(ev) => {
-          const { x } = getCoordsRelativeToRect(clientRect, ev)
-          const reaction = _.minBy((r) => Math.abs(r.left - x), sortedReactions)
-          const isNearMouse = reaction && Math.abs(reaction.left - x) < 12
-          setReactionNearMouse(isNearMouse ? reaction : null)
+          ev.persist()
+          throttledMouseMove(ev)
         }}
         onMouseLeave={() => {
           setReactionNearMouse(null)
