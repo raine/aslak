@@ -68,8 +68,8 @@ const getSortedReactions = (xScale, reactions) =>
     _.sortBy((x) => x.count)
   ])(reactions)
 
-const getCoordsRelativeToRect = ({ x, y }, event) => {
-  return { x: event.clientX - x, y: event.clientY - y }
+const getCoordsRelativeToRect = ({ left, top }, event) => {
+  return { x: event.clientX - left, y: event.clientY - top }
 }
 
 const ReactionOverlay = React.memo(
