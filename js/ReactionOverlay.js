@@ -157,10 +157,10 @@ const ReactionOverlay = React.memo(
               slackTs={slackTs}
               emojis={emojis}
               left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
-              {...rest}
               promote={
-                reactionNearMouse && reactionNearMouse.slackTs === slackTs
+                reactionNearMouse ? reactionNearMouse.slackTs === slackTs : false
               }
+              {...rest}
             />
           )
         })}
