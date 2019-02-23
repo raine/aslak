@@ -1,12 +1,13 @@
-import { FlexibleWidthXYPlot, AreaSeries, XAxis, YAxis } from 'react-vis'
+import { XYPlot, AreaSeries, LineMarkSeries, XAxis, YAxis } from 'react-vis'
 import { DateTime } from 'luxon'
-import React, { useContext, useRef, useMemo } from 'react'
+import React, { useContext, useRef, useMemo, useEffect } from 'react'
 import * as d3time from 'd3-time'
 import * as _ from 'lodash/fp'
 import * as d3scale from 'd3-scale'
 import { Options } from './Context'
 import { timeframeToDateTime } from './time'
 import ReactionOverlay from './ReactionOverlay'
+import AutoSizer from 'react-virtualized-auto-sizer'
 import '../css/Channel.scss'
 
 const toActivityData = (ticks, data) =>
@@ -54,7 +55,7 @@ const getNormalizedReactions = (messages, data) =>
     _.uniqBy((r) => r.x)
   ])(messages)
 
-const PLOT_MARGIN = { left: 32, right: 10, top: 40, bottom: 35 }
+const PLOT_MARGIN = { left: 10, right: 10, top: 40, bottom: 35 }
 
 const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
   const { timeframe, slack } = useContext(Options)
@@ -64,7 +65,7 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
     // prettier-ignore
     timeframe === '1h' ? d3time.timeMinute.every(5)  :
     timeframe === '1d' ? d3time.timeMinute.every(30) :
-    timeframe === '7d' ? d3time.timeHour.every(2)    : null
+    timeframe === '7d' ? d3time.timeHour.every(3)    : null
   )
   const chartTicks = makeTicks(
     timeframe,
@@ -77,7 +78,7 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
   let yMax = _.maxBy((obj) => obj.y, data).y
   yMax = yMax === 0 ? 1 : yMax
   const plotDims = xyPlotRef.current ? xyPlotRef.current.state : null
-  const yDomain = [0, Math.ceil(yMax / 10) * 10]
+  const yDomain = [0, yMax]
   const xDomain = [_.head(data).x, _.last(data).x]
   const channelReactions = useMemo(
     () => getNormalizedReactions(messages, data),
@@ -91,48 +92,50 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
           #{name}
         </a>
       </div>
-      <div className="plot">
-        <FlexibleWidthXYPlot
-          ref={xyPlotRef}
-          height={150}
-          margin={PLOT_MARGIN}
-          animation
-          xDomain={xDomain}
-          yDomain={yDomain}
-        >
-          <XAxis
-            tickSizeInner={0}
-            tickSizeOuter={6}
-            tickValues={chartTicks}
-            tickFormat={(v) =>
-              // prettier-ignore
-              DateTime.fromMillis(v).toFormat(
-               timeframe === '1h' ? 'HH:mm' :
-               timeframe === '1d' ? 'HH:mm' :
-               timeframe === '7d' ? 'ccc'   : null
-              )
-            }
-          />
-          <YAxis
-            tickFormat={(v) => parseInt(v).toString()}
-            tickValues={yDomain}
-            tickSizeInner={0}
-            tickSizeOuter={6}
-          />
-          <AreaSeries color="#8884d8" data={data} curve={'curveMonotoneX'} />
-        </FlexibleWidthXYPlot>
-        {plotDims && (
-          <ReactionOverlay
-            {...plotDims}
-            {...PLOT_MARGIN}
-            yDomain={yDomain}
-            xDomain={xDomain}
-            reactions={channelReactions}
-            emojis={emojis}
-            channelId={id}
-          />
+      <AutoSizer>
+        {({ width, height }) => (
+          <div className="plot">
+            <XYPlot
+              ref={xyPlotRef}
+              height={150}
+              width={width}
+              margin={PLOT_MARGIN}
+              animation
+              xDomain={xDomain}
+              yDomain={yDomain}
+            >
+              <XAxis
+                tickSizeInner={0}
+                tickSizeOuter={6}
+                tickValues={chartTicks}
+                tickFormat={(v) =>
+                  // prettier-ignore
+                  DateTime.fromMillis(v).toFormat(
+                 timeframe === '1h' ? 'HH:mm' :
+                 timeframe === '1d' ? 'HH:mm' :
+                 timeframe === '7d' ? 'ccc'   : null
+                )
+                }
+              />
+              <LineMarkSeries
+                size={1}
+                markStyle={{ fill: 'white', strokeWidth: 2 }}
+                color="#8884d8"
+                data={data}
+              />
+            </XYPlot>
+            <ReactionOverlay
+              left={PLOT_MARGIN.left}
+              width={width - PLOT_MARGIN.left - PLOT_MARGIN.right}
+              yDomain={yDomain}
+              xDomain={xDomain}
+              reactions={channelReactions}
+              emojis={emojis}
+              channelId={id}
+            />
+          </div>
         )}
-      </div>
+      </AutoSizer>
     </div>
   )
 })

@@ -73,22 +73,19 @@ const getCoordsRelativeToRect = ({ x, y }, event) => {
 }
 
 const ReactionOverlay = React.memo(
-  ({ width, left, right, xDomain, reactions, emojis, channelId }) => {
+  ({ width, left, xDomain, reactions, emojis, channelId }) => {
     const overlayRef = useRef(null)
     const overlayEl = overlayRef.current
-    const areaWidth = width - left - right
-    const xRange = [0, areaWidth]
+    const xRange = [0, width]
     const xScale = scaleLinear(xDomain, xRange)
-    const [sortedReactions, setSortedReactions] = useState([])
     const [reactionNearMouse, setReactionNearMouse] = useState(null)
-
-    useEffect(() => {
-      setSortedReactions(getSortedReactions(xScale, reactions))
-    }, [reactions])
-
+    const sortedReactions = useMemo(
+      () => getSortedReactions(xScale, reactions),
+      [reactions, width]
+    )
     const clientRect = useMemo(
       () => (overlayEl ? overlayEl.getBoundingClientRect() : null),
-      [overlayEl]
+      [overlayEl, width]
     )
 
     return (
@@ -96,7 +93,7 @@ const ReactionOverlay = React.memo(
         ref={overlayRef}
         className="reaction-overlay"
         style={{
-          width: areaWidth,
+          width,
           top: 0,
           left
         }}
