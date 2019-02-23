@@ -30,7 +30,7 @@ const Reaction = React.memo(
     const { slack } = useContext(Options)
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
-    const { scale, left, boxShadow, opacity } = useSpring({
+    const { scale, left, boxShadow } = useSpring({
       to: {
         scale: promote ? 1.25 : 1.0,
         boxShadow: promote
@@ -69,12 +69,19 @@ const Reaction = React.memo(
 
 Reaction.displayName = 'Reaction'
 
-const getSortedReactions = (xScale, reactions) =>
-  _.pipe([
-    _.filter(({ count }) => count > 1),
-    _.map((r) => ({ ...r, left: xScale(r.ts) })),
-    _.sortBy((x) => x.count)
-  ])(reactions)
+const getNormalizedReactions = _.pipe([
+  _.filter((msg) => msg.reactions),
+  _.flatMap((msg) =>
+    msg.reactions.map((reactions) => ({
+      ..._.omit(['users'], reactions),
+      slackTs: msg.slackTs,
+      ts: msg.ts.getTime()
+    }))
+  ),
+  _.filter((r) => r.count > 1),
+  _.uniqBy((r) => r.slackTs),
+  _.sortBy((r) => r.count)
+])
 
 const getCoordsRelativeToRect = (domRect, event) => ({
   x: event.clientX - domRect.left,
@@ -84,16 +91,19 @@ const getCoordsRelativeToRect = (domRect, event) => ({
 const X_THRESHOLD = 12
 
 const ReactionOverlay = React.memo(
-  ({ width, left, xDomain, reactions, emojis, channelId }) => {
+  ({ width, left, xDomain, messages, emojis, channelId }) => {
     const overlayRef = useRef(null)
     const overlayEl = overlayRef.current
     const xRange = [0, width]
     const xScale = scaleLinear(xDomain, xRange)
     const [reactionNearMouse, setReactionNearMouse] = useState(null)
     const [nearbyReactions, setNearbyReactions] = useState({})
-    const sortedReactions = useMemo(
-      () => getSortedReactions(xScale, reactions),
-      [reactions, width]
+    const reactions = useMemo(() => getNormalizedReactions(messages), [
+      messages
+    ])
+    const reactionsWithPositions = useMemo(
+      () => _.map((r) => ({ ...r, left: xScale(r.ts) }), reactions),
+      [reactions, xScale]
     )
     const throttledMouseMove = useCallback(
       _.throttle(50, (ev) => {
@@ -105,7 +115,7 @@ const ReactionOverlay = React.memo(
         if (mouseY < 0 || mouseY > 30) return
         const reaction = _.minBy(
           (r) => Math.abs(r.left - mouseX),
-          sortedReactions
+          reactionsWithPositions
         )
         const isNearMouse =
           reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
@@ -113,7 +123,7 @@ const ReactionOverlay = React.memo(
         setReactionNearMouse(isNearMouse ? reaction : null)
         setNearbyReactions(
           isNearMouse
-            ? sortedReactions.reduce((acc, r) => {
+            ? reactionsWithPositions.reduce((acc, r) => {
                 if (r.slackTs === reaction.slackTs) return acc
                 const offsetX = mouseX - r.left
                 return {
@@ -126,7 +136,7 @@ const ReactionOverlay = React.memo(
             : {}
         )
       }),
-      [sortedReactions]
+      [reactionsWithPositions]
     )
 
     return (
@@ -147,7 +157,7 @@ const ReactionOverlay = React.memo(
           setNearbyReactions({})
         }}
       >
-        {sortedReactions.map(({ slackTs, left, ...rest }) => {
+        {reactionsWithPositions.map(({ slackTs, left, ...rest }) => {
           const nr = nearbyReactions[slackTs]
 
           return (
@@ -158,7 +168,9 @@ const ReactionOverlay = React.memo(
               emojis={emojis}
               left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
               promote={
-                reactionNearMouse ? reactionNearMouse.slackTs === slackTs : false
+                reactionNearMouse
+                  ? reactionNearMouse.slackTs === slackTs
+                  : false
               }
               {...rest}
             />
