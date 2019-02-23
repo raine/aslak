@@ -8,12 +8,20 @@
   display: flex;
   flex-direction: column;
 
-  .name {
+  .header {
     border-bottom: 1px solid hsl(0, 0%, 94%);
     padding-bottom: 4px;
+    display: flex;
+    align-items: center;
 
-    a {
+    .link {
       color: hsl(0, 0%, 20%);
+      flex-grow: 1;
+    }
+
+    .message-count {
+      color: hsl(0, 0%, 45%);
+      font-size: 11px;
     }
   }
 

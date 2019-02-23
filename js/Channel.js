@@ -87,10 +87,18 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
 
   return (
     <div className="channel">
-      <div className="name">
-        <a href={slack.formatChannelLink(slack.getCachedTeamId(), id)}>
+      <div className="header">
+        <a
+          className="link"
+          href={slack.formatChannelLink(slack.getCachedTeamId(), id)}
+        >
           #{name}
         </a>
+        {messages.length > 0 && (
+          <span className="message-count">
+            {messages.length} messages / {timeframe}
+          </span>
+        )}
       </div>
       <AutoSizer>
         {({ width, height }) => (
