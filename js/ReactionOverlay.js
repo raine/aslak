@@ -20,6 +20,11 @@ const openSlackMessage = (slack, channelId, ts) =>
     window.open(permalink, '_blank')
   })
 
+const calcPushedLeftOffset = (reaction) =>
+  Math.sqrt(1 / Math.abs(reaction.offsetX)) *
+  15 *
+  (reaction.offsetX < 0 ? -1 : 1)
+
 const Reaction = React.memo(
   ({ emojis, name, count, left: leftPos, promote, channelId, slackTs }) => {
     const { slack } = useContext(Options)
@@ -74,10 +79,12 @@ const getSortedReactions = (xScale, reactions) =>
     _.sortBy((x) => x.count)
   ])(reactions)
 
-const getCoordsRelativeToRect = ({ left, top }, event) => ({
-  x: event.clientX - left,
-  y: event.clientY - top
+const getCoordsRelativeToRect = (domRect, event) => ({
+  x: event.clientX - domRect.left,
+  y: event.clientY - domRect.top
 })
+
+const X_THRESHOLD = 12
 
 const ReactionOverlay = React.memo(
   ({ width, left, xDomain, reactions, emojis, channelId }) => {
@@ -86,22 +93,43 @@ const ReactionOverlay = React.memo(
     const xRange = [0, width]
     const xScale = scaleLinear(xDomain, xRange)
     const [reactionNearMouse, setReactionNearMouse] = useState(null)
+    const [nearbyReactions, setNearbyReactions] = useState({})
     const sortedReactions = useMemo(
       () => getSortedReactions(xScale, reactions),
       [reactions, width]
     )
-    const clientRect = useMemo(
-      () => (overlayEl ? overlayEl.getBoundingClientRect() : null),
-      [overlayEl, width]
-    )
     const throttledMouseMove = useCallback(
       _.throttle(50, (ev) => {
-        const { x } = getCoordsRelativeToRect(clientRect, ev)
-        const reaction = _.minBy((r) => Math.abs(r.left - x), sortedReactions)
-        const isNearMouse = reaction && Math.abs(reaction.left - x) < 12
+        const clientRect = overlayEl.getBoundingClientRect()
+        const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
+        // Restrict vertical area on which mouse move can trigger update to
+        // reactions. Fixes this event from firing after mouse leave event and
+        // not clearing promoted reaction state.
+        if (mouseY < 0 || mouseY > 30) return
+        const reaction = _.minBy(
+          (r) => Math.abs(r.left - mouseX),
+          sortedReactions
+        )
+        const isNearMouse =
+          reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
+
         setReactionNearMouse(isNearMouse ? reaction : null)
+        setNearbyReactions(
+          isNearMouse
+            ? sortedReactions.reduce((acc, r) => {
+                if (r.slackTs === reaction.slackTs) return acc
+                const offsetX = mouseX - r.left
+                return {
+                  ...acc,
+                  ...(Math.abs(offsetX) < 12
+                    ? { [r.slackTs]: { offsetX } }
+                    : {})
+                }
+              }, {})
+            : {}
+        )
       }),
-      [clientRect, sortedReactions]
+      [sortedReactions]
     )
 
     return (
@@ -119,18 +147,26 @@ const ReactionOverlay = React.memo(
         }}
         onMouseLeave={() => {
           setReactionNearMouse(null)
+          setNearbyReactions({})
         }}
       >
-        {sortedReactions.map(({ slackTs, ...rest }) => (
-          <Reaction
-            key={slackTs}
-            channelId={channelId}
-            slackTs={slackTs}
-            emojis={emojis}
-            {...rest}
-            promote={reactionNearMouse && reactionNearMouse.slackTs === slackTs}
-          />
-        ))}
+        {sortedReactions.map(({ slackTs, left, ...rest }) => {
+          const nr = nearbyReactions[slackTs]
+
+          return (
+            <Reaction
+              key={slackTs}
+              channelId={channelId}
+              slackTs={slackTs}
+              emojis={emojis}
+              left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
+              {...rest}
+              promote={
+                reactionNearMouse && reactionNearMouse.slackTs === slackTs
+              }
+            />
+          )
+        })}
       </div>
     )
   }
