@@ -6,6 +6,7 @@ import { timeframeToDateTime, fromSlackTimestamp, floorInterval } from './time'
 import K from 'kefir'
 import lscache from 'lscache'
 
+const REDIRECT_URI = `${location.protocol}//${location.host}${location.pathname}`
 const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID
 const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET
 const X_WWW_FORM_URLENCODED = {
@@ -130,10 +131,7 @@ const formatOauthUri = (clientId) =>
   qs.stringify({
     client_id: clientId,
     scope: 'channels:history channels:read emoji:read',
-    redirect_uri: window.location.href
-      .replace(window.location.hash, '')
-      .replace(/\/$/, '')
-    // TODO: specify team
+    redirect_uri: REDIRECT_URI
   })
 
 const oauthAccess = (clientId, clientSecret, code) =>
@@ -142,7 +140,8 @@ const oauthAccess = (clientId, clientSecret, code) =>
       qs.stringify({
         client_id: clientId,
         client_secret: clientSecret,
-        code
+        code,
+        redirect_uri: REDIRECT_URI
       })
   )
 
