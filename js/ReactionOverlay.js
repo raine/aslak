@@ -36,10 +36,8 @@ const Reaction = React.memo(
         boxShadow: promote
           ? `0px 0px 8px 1px rgba(0, 0, 0, 0.2)`
           : `0px 0px 2px 1px rgba(0, 0, 0, 0.1)`,
-        opacity: 1,
         left: leftPos
       },
-      from: { opacity: 0 },
       config: { mass: 0.5, tension: 250, friction: 20 }
     })
     return (
@@ -52,7 +50,6 @@ const Reaction = React.memo(
           left: left.interpolate((left) => `calc(${left}px - 10px)`),
           zIndex: promote ? 1 : null,
           boxShadow,
-          opacity,
           transform: scale.interpolate((scale) => `scale(${scale})`)
         }}
       >
