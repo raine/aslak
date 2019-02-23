@@ -34,26 +34,18 @@ const makeTicks = (timeframe, step) => {
 }
 
 // Move to overlay?
-const getNormalizedReactions = (messages, data) =>
-  _.pipe([
-    _.filter((msg) => msg.reactions),
-    _.flatMap((msg) =>
-      msg.reactions.map((reactions) => ({
-        ..._.omit(['users'], reactions),
-        slackTs: msg.slackTs,
-        ts: msg.ts.getTime()
-      }))
-    ),
-    _.orderBy((x) => x.count, ['desc']),
-    _.map((msg) => ({
-      ...msg,
-      ...(data.find(({ x }, idx) => {
-        const next = data[idx + 1]
-        return x <= msg.ts && (next ? next.x >= msg.ts : true)
-      }) || data[0])
-    })),
-    _.uniqBy((r) => r.x)
-  ])(messages)
+const getNormalizedReactions = _.pipe([
+  _.filter((msg) => msg.reactions),
+  _.flatMap((msg) =>
+    msg.reactions.map((reactions) => ({
+      ..._.omit(['users'], reactions),
+      slackTs: msg.slackTs,
+      ts: msg.ts.getTime()
+    }))
+  ),
+  _.orderBy((x) => x.count, ['desc']),
+  _.uniqBy((r) => r.slackTs)
+])
 
 const PLOT_MARGIN = { left: 10, right: 10, top: 40, bottom: 35 }
 
@@ -78,10 +70,9 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
   yMax = yMax === 0 ? 1 : yMax
   const yDomain = [0, yMax]
   const xDomain = [_.head(data).x, _.last(data).x]
-  const channelReactions = useMemo(
-    () => getNormalizedReactions(messages, data),
-    [messages, data]
-  )
+  const channelReactions = useMemo(() => getNormalizedReactions(messages), [
+    messages
+  ])
 
   return (
     <div className="channel">
