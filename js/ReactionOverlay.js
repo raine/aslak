@@ -9,6 +9,11 @@ import { Options } from './Context'
 const fixEmojiName = (name) =>
   name.replace(/\+/g, 'plus').replace(/::skin-tone-\d/, '')
 
+const openSlackMessage = (slack, channelId, ts) =>
+  slack.getMessagePermaLink(channelId, ts).then(({ permalink }) => {
+    window.open(permalink, '_blank')
+  })
+
 const Reaction = React.memo(
   ({ emojis, name, count, left: leftPos, promote, channelId, slackTs }) => {
     const { slack } = useContext(Options)
@@ -30,13 +35,7 @@ const Reaction = React.memo(
       <animated.div
         title={`:${emoji}:`}
         className="reaction"
-        onClick={() => {
-          slack
-            .getMessagePermaLink(channelId, slackTs)
-            .then(({ permalink }) => {
-              window.open(permalink, '_blank')
-            })
-        }}
+        onClick={() => openSlackMessage(slack, channelId, slackTs)}
         style={{
           top: 0,
           left: left.interpolate((left) => `calc(${left}px - 10px)`),
