@@ -30,26 +30,27 @@ const App = ({ slack }) => {
       cached('emoji.list', 120, slack.getEmojiList)(),
       slack.getChannelsCached()
     ]).then(([emojis, allChannels]) => {
-      const channels = allChannels.filter((c) =>
-        [
-          'autokerho',
-          'hobby-stanga-cycling',
-          'politics',
-          'heirs',
-          'announce-global',
-          'help-admin',
-          'design',
-          'tech-web',
-          'team-gossip',
-          'spacelab',
-          'investing',
-          'sylvanerstallone',
-          'hobby-shitposting',
-          'hobby-video-gaming',
-          'typescript'
-        ].includes(c.name)
-      )
-      // const channels = allChannels.slice(0, 20)
+      // const channels = allChannels.filter((c) =>
+      //   [
+      //     // 'autokerho',
+      //     // 'hobby-stanga-cycling',
+      //     // 'politics',
+      //     'heirs',
+      //     'announce-global',
+      //     'help-admin',
+      //     'design',
+      //     'tech-web',
+      //     'team-gossip',
+      //     'spacelab',
+      //     'investing',
+      //     'sylvanerstallone',
+      //     // 'hobby-shitposting',
+      //     // 'hobby-video-gaming',
+      //     // 'typescript',
+      //     'hevonen'
+      //   ].includes(c.name)
+      // )
+      const channels = allChannels.slice(0, 26)
       setAllChannels(allChannels)
       setChannels(channels)
       setEmojis(emojis)
