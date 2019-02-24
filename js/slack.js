@@ -2,11 +2,14 @@
 
 import qs from 'querystring'
 import * as _ from 'lodash/fp'
-import { timeframeToDateTime, fromSlackTimestamp, floorInterval } from './time'
+import { DateTime } from 'luxon'
+import { fromSlackTimestamp, floorInterval } from './time'
 import K from 'kefir'
 import lscache from 'lscache'
 
-const REDIRECT_URI = `${location.protocol}//${location.host}${location.pathname}`
+const REDIRECT_URI = `${location.protocol}//${location.host}${
+  location.pathname
+}`
 const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID
 const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET
 const X_WWW_FORM_URLENCODED = {
@@ -178,7 +181,7 @@ const getChannels = (getAll) => () =>
   ).then(
     _.pipe([
       _.orderBy((x) => x.num_members, ['desc']),
-      _.map(_.pick(['id', 'name', 'num_members']))
+      _.map(_.pick(['id', 'name', 'is_member']))
     ])
   )
 
@@ -196,23 +199,27 @@ const sanitizeMessages = _.pipe([
   )
 ])
 
-const streamChannelHistory = (getAllStreamed) => (timeframe, id) =>
+const streamChannelHistory = (getAllStreamed) => ([from], id) =>
   getAllStreamed(
     'conversations.history',
     {
       limit: 1000,
       channel: id,
-      oldest: floorInterval(5, timeframeToDateTime(timeframe)).toSeconds()
+      oldest: floorInterval(5, DateTime.fromJSDate(from)).toSeconds()
     },
     'messages'
   )
     // At this point, strip data that is not going to be useful
     .map(sanitizeMessages)
 
-const streamChannelsHistory = (streamChannelHistory) => (timeframe, channels) =>
+const streamChannelsHistory = (streamChannelHistory) => (
+  timeframeInterval,
+  channels
+) =>
   K.sequentially(0, channels).flatMapConcurLimit(
-    (c) => streamChannelHistory(timeframe, c.id).map((xs) => [c.id, xs]),
-    5
+    (c) =>
+      streamChannelHistory(timeframeInterval, c.id).map((xs) => [c.id, xs]),
+    2
   )
 
 const getMessagePermaLink = (get) => (channel, message_ts) =>

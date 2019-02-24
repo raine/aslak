@@ -1,4 +1,3 @@
-/* global module */
 import * as slack from './slack'
 import React from 'react'
 import { render } from 'react-dom'
