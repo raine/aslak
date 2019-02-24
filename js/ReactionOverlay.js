@@ -93,7 +93,6 @@ const X_THRESHOLD = 12
 const ReactionOverlay = React.memo(
   ({ width, left, xDomain, messages, emojis, channelId }) => {
     const overlayRef = useRef(null)
-    const overlayEl = overlayRef.current
     const xRange = [0, width]
     const xScale = scaleLinear(xDomain, xRange)
     const [reactionNearMouse, setReactionNearMouse] = useState(null)
@@ -106,7 +105,9 @@ const ReactionOverlay = React.memo(
       [reactions, xScale]
     )
     const throttledMouseMove = useCallback(
-      _.throttle(50, (ev) => {
+      _.throttle(100, (ev) => {
+        const overlayEl = overlayRef.current
+        if (overlayEl === null) return
         const clientRect = overlayEl.getBoundingClientRect()
         const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
         // Restrict vertical area on which mouse move can trigger update to
