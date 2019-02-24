@@ -53,5 +53,6 @@
   @include media-breakpoint-up(md) {
     border-radius: 4px;
     grid-template-columns: repeat(2, 1fr);
+    margin-bottom: 2rem;
   }
 }
