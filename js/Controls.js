@@ -1,6 +1,7 @@
 import React from 'react'
 import classNames from 'classnames'
 import '../css/Controls.scss'
+import { timeframeToDateTime } from './time'
 
 const TIMEFRAMES = ['1h', '1d', '7d', '4w']
 const CHANNEL_SELECTION = [
@@ -31,7 +32,16 @@ const Controls = React.memo(({ setAppState, timeframe, channelListType }) => (
           <li
             className={classNames({ selected: timeframe === t })}
             key={t}
-            onClick={() => setAppState((state) => ({ ...state, timeframe: t }))}
+            onClick={() =>
+              setAppState((state) => ({
+                ...state,
+                timeframe: t,
+                timeframeInterval: [
+                  timeframeToDateTime(t).toJSDate(),
+                  new Date()
+                ]
+              }))
+            }
           >
             {t}
           </li>

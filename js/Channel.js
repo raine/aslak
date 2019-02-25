@@ -34,7 +34,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
   const [timeframeFrom, timeframeTo] = timeframeInterval
   const dataTicks = useMemo(
     () => makeTicks(timeframeFrom, timeframeTo, dataTickStep(timeframe)),
-    [timeframe]
+    [timeframeFrom, timeframeTo, timeframe]
   )
   const messagesWithinTimeframe = useMemo(
     () => messages.filter((m) => m.ts >= timeframeFrom && m.ts <= timeframeTo),
