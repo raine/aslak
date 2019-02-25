@@ -1,3 +1,0 @@
-- [ ] make channel name a link
-- [ ] reactions
-- [ ] allow going to conversation at selected point in time
