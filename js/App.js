@@ -28,7 +28,7 @@ const unbind = (k) => k.offValue.bind(k)
 
 const getChannelsByListType = (type, allChannels) =>
   // prettier-ignore
-  type === 'POPULAR'   ? allChannels.slice(0, 15) :
+  type === 'POPULAR'   ? allChannels.slice(0, 32) :
   type === 'MEMBER_OF' ? allChannels.filter((c) => c.is_member) : []
 
 const Channels = React.memo(({ channels, messages }) => (
