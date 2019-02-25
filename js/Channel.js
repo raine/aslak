@@ -59,7 +59,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
         </a>
         <span className="message-count">
           {messagesWithinTimeframe.length} message
-          {messagesWithinTimeframe.length !== 1 ? 's' : ''} / {timeframe}
+          {messagesWithinTimeframe.length !== 1 ? 's' : ''}
         </span>
       </div>
       <AutoSizer>
