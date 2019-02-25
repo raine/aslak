@@ -34,7 +34,7 @@ const getChannelsByListType = (type, allChannels) =>
 const Channels = React.memo(({ channels, messages }) => (
   <div className="channels">
     {channels.map((c) => (
-      <Channel key={c.id} name={c.name} messages={messages[c.id]} />
+      <Channel key={c.id} id={c.id} name={c.name} messages={messages[c.id]} />
     ))}
   </div>
 ))
