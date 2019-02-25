@@ -14,37 +14,58 @@ import 'react-vis/dist/style.css'
 
 const DEFAULT_TIMEFRAME = '7d'
 const DEFAULT_CHANNEL_LIST_TYPE = 'MEMBER_OF'
+const DEFAULT_MESSAGES = []
 
 const updateChannelMessages = (id, channelMessages) => (messages) => ({
   ...messages,
-  [id]: _.uniqBy((m) => m.slackTs, (messages[id] || []).concat(channelMessages))
+  [id]: _.uniqBy(
+    (m) => m.slackTs,
+    (messages[id] || DEFAULT_MESSAGES).concat(channelMessages)
+  )
 })
 
 const unbind = (k) => k.offValue.bind(k)
 
 const getChannelsByListType = (type, allChannels) =>
+  // prettier-ignore
   type === 'POPULAR'   ? allChannels.slice(0, 15) :
   type === 'MEMBER_OF' ? allChannels.filter((c) => c.is_member) : []
+
+const Channels = React.memo(({ channels, messages }) => (
+  <div className="channels">
+    {channels.map((c) => (
+      <Channel key={c.id} name={c.name} messages={messages[c.id]} />
+    ))}
+  </div>
+))
+
+Channels.displayName = 'Channels'
 
 const App = ({ slack }) => {
   const [allChannels, setAllChannels] = useState([])
   const [channels, setChannels] = useState([])
-  const [channelListType, setChannelListType] = useState(DEFAULT_CHANNEL_LIST_TYPE)
   const [messages, setMessages] = useState({})
-  const [timeframe, setTimeframe] = useState(DEFAULT_TIMEFRAME)
-  const [emojis, setEmojis] = useState({})
-  const timeframeInterval = [
-    timeframeToDateTime(timeframe).toJSDate(),
-    new Date()
-  ]
+  const [appState, setAppState] = useState({
+    timeframe: DEFAULT_TIMEFRAME,
+    timeframeInterval: [
+      timeframeToDateTime(DEFAULT_TIMEFRAME).toJSDate(),
+      new Date()
+    ],
+    channelListType: DEFAULT_CHANNEL_LIST_TYPE,
+    slack,
+    emojis: {}
+  })
 
+  const { channelListType, timeframe, timeframeInterval } = appState
+
+  // TODO: Set channels separately from emojis to have bg load faster
   useEffect(() => {
     Promise.all([
       cached('emoji.list', 120, slack.getEmojiList)(),
       slack.getChannelsCached()
     ]).then(([emojis, allChannels]) => {
       setAllChannels(allChannels)
-      setEmojis(emojis)
+      setAppState((state) => ({ ...state, emojis }))
     })
   }, [])
 
@@ -65,33 +86,23 @@ const App = ({ slack }) => {
   )
 
   return (
-    <Options.Provider value={{ timeframe, timeframeInterval, slack }}>
-      <Fragment>
-        <Background channels={allChannels.slice(0, 60)} />
-        <div className="app-container">
-          <Controls
-            {...{
-              timeframe,
-              setTimeframe,
-              channelListType,
-              setChannelListType
-            }}
-          />
+    <Fragment>
+      <Background channels={allChannels.slice(0, 60)} />
+      <div className="app-container">
+        <Controls
+          {...{
+            channelListType,
+            timeframe,
+            setAppState
+          }}
+        />
+        <Options.Provider value={appState}>
           {channels.length > 0 && (
-            <div className="channels">
-              {channels.map((c) => (
-                <Channel
-                  key={c.id}
-                  emojis={emojis}
-                  messages={messages[c.id]}
-                  {...c}
-                />
-              ))}
-            </div>
+            <Channels channels={channels} messages={messages} />
           )}
-        </div>
-      </Fragment>
-    </Options.Provider>
+        </Options.Provider>
+      </div>
+    </Fragment>
   )
 }
 

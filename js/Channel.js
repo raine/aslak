@@ -29,7 +29,7 @@ const toActivityData = (ticks, data) =>
     }
   })
 
-const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
+const Channel = React.memo(({ id, name, messages = [] }) => {
   const { timeframe, timeframeInterval, slack } = useContext(Options)
   const [timeframeFrom, timeframeTo] = timeframeInterval
   const dataTicks = useMemo(
@@ -82,7 +82,6 @@ const Channel = React.memo(({ id, name, emojis, messages = [] }) => {
                 width={width - PLOT_MARGIN.left - PLOT_MARGIN.right}
                 xDomain={xDomain}
                 messages={messagesWithinTimeframe}
-                emojis={emojis}
                 channelId={id}
               />
             ) : null}

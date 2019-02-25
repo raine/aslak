@@ -1,9 +1,4 @@
-import React, {
-  useMemo,
-  useRef,
-  useState,
-  useContext
-} from 'react'
+import React, { useMemo, useRef, useState, useContext } from 'react'
 import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
@@ -26,8 +21,8 @@ const calcPushedLeftOffset = (reaction) =>
   (reaction.offsetX < 0 ? -1 : 1)
 
 const Reaction = React.memo(
-  ({ emojis, name, count, left: leftPos, promote, channelId, slackTs }) => {
-    const { slack } = useContext(Options)
+  ({ name, count, left: leftPos, promote, channelId, slackTs }) => {
+    const { slack, emojis } = useContext(Options)
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
     const { scale, left, boxShadow } = useSpring({
@@ -91,7 +86,7 @@ const getCoordsRelativeToRect = (domRect, event) => ({
 const X_THRESHOLD = 12
 
 const ReactionOverlay = React.memo(
-  ({ width, left, xDomain, messages, emojis, channelId }) => {
+  ({ width, left, xDomain, messages, channelId }) => {
     const overlayRef = useRef(null)
     const xRange = [0, width]
     const xScale = scaleLinear(xDomain, xRange)
@@ -162,7 +157,6 @@ const ReactionOverlay = React.memo(
               key={slackTs}
               channelId={channelId}
               slackTs={slackTs}
-              emojis={emojis}
               left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
               promote={
                 reactionNearMouse
