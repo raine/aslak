@@ -2,14 +2,14 @@ import React, {
   useMemo,
   useRef,
   useState,
-  useContext,
-  useCallback
+  useContext
 } from 'react'
 import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
 import emojiShortcodeToChar from '../emojis.json'
 import { useSpring, animated } from 'react-spring'
+import { useThrottle } from 'use-lodash-debounce-throttle'
 import { Options } from './Context'
 
 const fixEmojiName = (name) =>
@@ -104,41 +104,37 @@ const ReactionOverlay = React.memo(
       () => _.map((r) => ({ ...r, left: xScale(r.ts) }), reactions),
       [reactions, xScale]
     )
-    const throttledMouseMove = useCallback(
-      _.throttle(100, (ev) => {
-        const overlayEl = overlayRef.current
-        if (overlayEl === null) return
-        const clientRect = overlayEl.getBoundingClientRect()
-        const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
-        // Restrict vertical area on which mouse move can trigger update to
-        // reactions. Fixes this event from firing after mouse leave event and
-        // not clearing promoted reaction state.
-        if (mouseY < 0 || mouseY > 30) return
-        const reaction = _.minBy(
-          (r) => Math.abs(r.left - mouseX),
-          reactionsWithPositions
-        )
-        const isNearMouse =
-          reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
 
-        setReactionNearMouse(isNearMouse ? reaction : null)
-        setNearbyReactions(
-          isNearMouse
-            ? reactionsWithPositions.reduce((acc, r) => {
-                if (r.slackTs === reaction.slackTs) return acc
-                const offsetX = mouseX - r.left
-                return {
-                  ...acc,
-                  ...(Math.abs(offsetX) < 15
-                    ? { [r.slackTs]: { offsetX } }
-                    : {})
-                }
-              }, {})
-            : {}
-        )
-      }),
-      [reactionsWithPositions]
-    )
+    const throttledMouseMove = useThrottle((ev) => {
+      const overlayEl = overlayRef.current
+      if (overlayEl === null) return
+      const clientRect = overlayEl.getBoundingClientRect()
+      const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
+      // Restrict vertical area on which mouse move can trigger update to
+      // reactions. Fixes this event from firing after mouse leave event and
+      // not clearing promoted reaction state.
+      if (mouseY < 0 || mouseY > 30) return
+      const reaction = _.minBy(
+        (r) => Math.abs(r.left - mouseX),
+        reactionsWithPositions
+      )
+      const isNearMouse =
+        reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
+
+      setReactionNearMouse(isNearMouse ? reaction : null)
+      setNearbyReactions(
+        isNearMouse
+          ? reactionsWithPositions.reduce((acc, r) => {
+              if (r.slackTs === reaction.slackTs) return acc
+              const offsetX = mouseX - r.left
+              return {
+                ...acc,
+                ...(Math.abs(offsetX) < 15 ? { [r.slackTs]: { offsetX } } : {})
+              }
+            }, {})
+          : {}
+      )
+    }, 50)
 
     return (
       <div
