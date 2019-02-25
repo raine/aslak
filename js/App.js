@@ -58,15 +58,12 @@ const App = ({ slack }) => {
 
   const { channelListType, timeframe, timeframeInterval } = appState
 
-  // TODO: Set channels separately from emojis to have bg load faster
   useEffect(() => {
-    Promise.all([
-      cached('emoji.list', 120, slack.getEmojiList)(),
-      slack.getChannelsCached()
-    ]).then(([emojis, allChannels]) => {
-      setAllChannels(allChannels)
+    cached('emoji.list', 120, slack.getEmojiList)().then((emojis) =>
       setAppState((state) => ({ ...state, emojis }))
-    })
+    )
+
+    cached('channels', 120, slack.getChannels)().then(setAllChannels)
   }, [])
 
   useEffect(() => {
