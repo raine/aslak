@@ -68,6 +68,7 @@ export const init = (token, cacheTTL = 5) => {
   api.getEmojiList = getEmojiList(api.get)
   api.getCachedTeamId = getCachedTeamId
   api.formatChannelLink = formatChannelLink
+  api.getUserInfo = getUserInfo(api.get)
   return api
 }
 
@@ -133,7 +134,7 @@ const formatOauthUri = (clientId) =>
   'https://slack.com/oauth/authorize?' +
   qs.stringify({
     client_id: clientId,
-    scope: 'channels:history channels:read emoji:read',
+    scope: 'channels:history channels:read emoji:read users:read',
     redirect_uri: REDIRECT_URI
   })
 
@@ -189,7 +190,6 @@ const sanitizeMessages = _.pipe([
   _.reject((msg) => msg.subtype === 'bot_message'),
   _.map(
     _.pipe([
-      _.pick(['ts', 'user', 'reactions']),
       (msg) => ({
         ...msg,
         slackTs: msg.ts,
@@ -231,3 +231,6 @@ const getCachedTeamId = () => localStorage.getItem('slack_team_id')
 
 const formatChannelLink = (teamId, channelId) =>
   `slack://channel?id=${channelId}&team=${teamId}`
+
+const getUserInfo = (get) => (user) =>
+  get('users.info', { user }).then(_.get('body.user'))
