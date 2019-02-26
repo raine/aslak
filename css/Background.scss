@@ -1,0 +1,22 @@
+@import 'variables';
+@import 'breakpoints';
+
+.background {
+  font-size: 6em;
+  line-height: 0.75;
+  word-break: break-all;
+  user-select: none;
+  letter-spacing: -0.3rem;
+  position: fixed;
+  top: -2em;
+  left: -0em;
+  text-shadow: 4px 4px 1px hsl(0, 0%, 95%);
+  color: hsla(0, 0%, 98%, 1);
+  transform: skewY(-12deg);
+  z-index: -1;
+  font-weight: 600;
+
+  @include media-breakpoint-up(xl) {
+    font-size: 6vw;
+  }
+}

@@ -84,7 +84,7 @@ const App = ({ slack }) => {
 
   return (
     <Fragment>
-      <Background channels={allChannels.slice(0, 60)} />
+      <Background channels={allChannels} />
       <div className="app-container">
         <Controls
           {...{
