@@ -9,9 +9,17 @@
   background-color: #fff;
   // padding: 0.3rem 0.7rem;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-  opacity: 0.8;
+  opacity: 1;
   display: flex;
   justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  transition: opacity 0.2s linear;
+
+  &.is-scrolled-top {
+    opacity: 0.8;
+  }
 
   .channel-selector,
   .timeframe-selector {

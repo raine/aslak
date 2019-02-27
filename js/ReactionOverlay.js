@@ -21,6 +21,7 @@ const calcPushedLeftOffset = (reaction) =>
 const Reaction = React.memo(
   ({ name, count, left: leftPos, promote, channelId, msg }) => {
     const mouseEnterTimeoutRef = useRef(null)
+    const mouseLeaveTimeoutRef = useRef(null)
     // const [popupVisible, setPopupVisible] = useState(/* false */ msg.slackTs === '1551011539.089100')
     const [popupVisible, setPopupVisible] = useState(false)
     const [messagePermalinkUrl, setMessagePermalinkUrl] = useState(null)
