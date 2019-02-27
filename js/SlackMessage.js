@@ -8,7 +8,6 @@ import xss from 'xss'
 import '../css/SlackMessage.scss'
 
 const SlackMessageImage = React.memo((file) => {
-  if (!(file.mimetype === 'image/jpeg' && file.thumb_360)) return null
   return (
     <div
       className="message-image"
@@ -65,7 +64,7 @@ const SlackMessage = React.memo((props) => {
               </span>
             </div>
             <div className="message-text" dangerouslySetInnerHTML={textHtml} />
-            {files[0] && <SlackMessageImage {...files[0]} />}
+            {files[0] && files[0].thumb_360 && <SlackMessageImage {...files[0]} />}
           </div>
         </animated.div>
       )
