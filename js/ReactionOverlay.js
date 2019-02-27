@@ -3,6 +3,7 @@ import { Manager, Reference, Popper } from 'react-popper'
 import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
+import NewWindow from 'react-new-window'
 import SlackMessage from './SlackMessage'
 import emojiShortcodeToChar from '../emojis.json'
 import { useSpring, animated } from 'react-spring'
@@ -11,11 +12,6 @@ import { Options } from './Context'
 
 const fixEmojiName = (name) =>
   name.replace(/\+/g, 'plus').replace(/::skin-tone-\d/, '')
-
-const openSlackMessage = (slack, channelId, ts) =>
-  slack.getMessagePermaLink(channelId, ts).then(({ permalink }) => {
-    window.open(permalink, '_blank')
-  })
 
 const calcPushedLeftOffset = (reaction) =>
   Math.sqrt(1 / Math.abs(reaction.offsetX)) *
@@ -27,6 +23,7 @@ const Reaction = React.memo(
     const mouseEnterTimeoutRef = useRef(null)
     // const [popupVisible, setPopupVisible] = useState(/* false */ msg.slackTs === '1551011539.089100')
     const [popupVisible, setPopupVisible] = useState(false)
+    const [messagePermalinkUrl, setMessagePermalinkUrl] = useState(null)
     const { slack, emojis } = useContext(Options)
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
@@ -40,6 +37,18 @@ const Reaction = React.memo(
       clearTimeout(mouseEnterTimeoutRef.current)
       setPopupVisible(false)
     }
+    const onClick = () => {
+      slack
+        .getMessagePermaLink(channelId, msg.slackTs)
+        .then(({ permalink }) => {
+          setMessagePermalinkUrl(permalink)
+          // Automatically close the popup and hope that slack had opened
+          // during the timeout delay
+          setTimeout(() => {
+            setMessagePermalinkUrl(null)
+          }, 3000)
+        })
+    }
     const { scale, left, boxShadow } = useSpring({
       to: {
         scale: promote ? 1.25 : 1.0,
@@ -51,56 +60,66 @@ const Reaction = React.memo(
       config: { mass: 0.5, tension: 250, friction: 20 }
     })
     return (
-      <Manager>
-        <Reference>
-          {({ ref }) => (
-            <animated.div
-              ref={ref}
-              title={`:${emoji}:`}
-              className="reaction"
-              onMouseEnter={onMouseEnter}
-              onMouseLeave={onMouseLeave}
-              onClick={() => openSlackMessage(slack, channelId, msg.slackTs)}
-              style={{
-                top: 0,
-                left: left.interpolate((left) => `calc(${left}px - 10px)`),
-                zIndex: promote ? 1 : null,
-                boxShadow,
-                transform: scale.interpolate((scale) => `scale(${scale})`)
-              }}
-            >
-              <div
-                className="emoji"
+      <React.Fragment>
+        {messagePermalinkUrl && (
+          <NewWindow
+            copyStyles={false}
+            center={false}
+            features={{ width: 400, height: 450, left: 0, top: 0 }}
+            url={messagePermalinkUrl}
+          />
+        )}
+        <Manager>
+          <Reference>
+            {({ ref }) => (
+              <animated.div
+                ref={ref}
+                title={`:${emoji}:`}
+                className="reaction"
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                onClick={onClick}
                 style={{
-                  ...(emojiUrl ? { backgroundImage: `url(${emojiUrl})` } : {})
+                  top: 0,
+                  left: left.interpolate((left) => `calc(${left}px - 10px)`),
+                  zIndex: promote ? 1 : null,
+                  boxShadow,
+                  transform: scale.interpolate((scale) => `scale(${scale})`)
                 }}
               >
-                {!emojiUrl ? emojiShortcodeToChar[emoji] : null}
-              </div>
-              <div className="count">{count}</div>
-            </animated.div>
-          )}
-        </Reference>
-        {popupVisible && (
-          <Popper
-            placement="auto"
-            modifiers={{
-              arrow: { enabled: false }
-            }}
-          >
-            {({ ref, style, placement, scheduleUpdate }) => (
-              <div
-                ref={ref}
-                style={style}
-                className="popper-container"
-                data-placement={placement}
-              >
-                <SlackMessage {...msg} scheduleUpdate={scheduleUpdate} />
-              </div>
+                <div
+                  className="emoji"
+                  style={{
+                    ...(emojiUrl ? { backgroundImage: `url(${emojiUrl})` } : {})
+                  }}
+                >
+                  {!emojiUrl ? emojiShortcodeToChar[emoji] : null}
+                </div>
+                <div className="count">{count}</div>
+              </animated.div>
             )}
-          </Popper>
-        )}
-      </Manager>
+          </Reference>
+          {popupVisible && (
+            <Popper
+              placement="auto"
+              modifiers={{
+                arrow: { enabled: false }
+              }}
+            >
+              {({ ref, style, placement, scheduleUpdate }) => (
+                <div
+                  ref={ref}
+                  style={style}
+                  className="popper-container"
+                  data-placement={placement}
+                >
+                  <SlackMessage {...msg} scheduleUpdate={scheduleUpdate} />
+                </div>
+              )}
+            </Popper>
+          )}
+        </Manager>
+      </React.Fragment>
     )
   }
 )
