@@ -116,8 +116,8 @@ const getNormalizedReactions = _.pipe([
     }))
   ),
   _.filter((r) => r.count > 1),
-  _.uniqBy((r) => r.msg.slackTs),
-  _.sortBy((r) => r.count)
+  _.orderBy((r) => r.count, ['desc']),
+  _.uniqBy((r) => r.msg.slackTs)
 ])
 
 const getCoordsRelativeToRect = (domRect, event) => ({
