@@ -135,8 +135,11 @@ const getNormalizedReactions = _.pipe([
     }))
   ),
   _.filter((r) => r.count > 1),
+  // Take the most popular reaction from each message
   _.orderBy((r) => r.count, ['desc']),
-  _.uniqBy((r) => r.msg.slackTs)
+  _.uniqBy((r) => r.msg.slackTs),
+  // Sort in ascending order to have reactions with larger count render on top
+  _.orderBy((r) => r.count, ['asc'])
 ])
 
 const getCoordsRelativeToRect = (domRect, event) => ({
