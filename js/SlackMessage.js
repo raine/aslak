@@ -35,7 +35,9 @@ const SlackMessage = React.memo((props) => {
     () => ({ __html: xss(slackdown.parse(text).replace(/\n/g, '<br />')) }),
     [text]
   )
-  scheduleUpdate()
+  useEffect(() => {
+    scheduleUpdate()
+  }, [user])
   useEffect(() => {
     slack.getUserInfo(userId).then(setUser)
   }, [setUser])
@@ -64,7 +66,9 @@ const SlackMessage = React.memo((props) => {
               </span>
             </div>
             <div className="message-text" dangerouslySetInnerHTML={textHtml} />
-            {files[0] && files[0].thumb_360 && <SlackMessageImage {...files[0]} />}
+            {files[0] && files[0].thumb_360 && (
+              <SlackMessageImage {...files[0]} />
+            )}
           </div>
         </animated.div>
       )

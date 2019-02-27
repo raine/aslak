@@ -29,6 +29,7 @@ const Reaction = React.memo(
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
     const onMouseEnter = () => {
+      clearTimeout(mouseLeaveTimeoutRef.current)
       mouseEnterTimeoutRef.current = setTimeout(
         () => setPopupVisible(true),
         300
@@ -36,7 +37,10 @@ const Reaction = React.memo(
     }
     const onMouseLeave = () => {
       clearTimeout(mouseEnterTimeoutRef.current)
-      setPopupVisible(false)
+      mouseLeaveTimeoutRef.current = setTimeout(
+        () => setPopupVisible(false),
+        300
+      )
     }
     const onClick = () => {
       slack
@@ -113,6 +117,8 @@ const Reaction = React.memo(
                   style={style}
                   className="popper-container"
                   data-placement={placement}
+                  onMouseEnter={onMouseEnter}
+                  onMouseLeave={onMouseLeave}
                 >
                   <SlackMessage {...msg} scheduleUpdate={scheduleUpdate} />
                 </div>
