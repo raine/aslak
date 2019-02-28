@@ -11,7 +11,7 @@ import { useThrottle } from 'use-lodash-debounce-throttle'
 import { Options } from './Context'
 
 const fixEmojiName = (name) =>
-  name.replace(/\+/g, 'plus').replace(/::skin-tone-\d/, '')
+  name.replace(/::skin-tone-\d/, '')
 
 const calcPushedLeftOffset = (reaction) =>
   Math.sqrt(1 / Math.abs(reaction.offsetX)) *
