@@ -2,8 +2,7 @@
 
 import qs from 'querystring'
 import * as _ from 'lodash/fp'
-import { DateTime } from 'luxon'
-import { fromSlackTimestamp, floorInterval } from './time'
+import { fromSlackTimestamp } from './time'
 import K from 'kefir'
 import lscache from 'lscache'
 
@@ -199,26 +198,22 @@ const sanitizeMessages = _.pipe([
   )
 ])
 
-const streamChannelHistory = (getAllStreamed) => ([from], id) =>
+const streamChannelHistory = (getAllStreamed) => (params, id) =>
   getAllStreamed(
     'conversations.history',
     {
       limit: 1000,
       channel: id,
-      oldest: floorInterval(5, DateTime.fromJSDate(from)).toSeconds()
+      ...params
     },
     'messages'
   )
     // At this point, strip data that is not going to be useful
     .map(sanitizeMessages)
 
-const streamChannelsHistory = (streamChannelHistory) => (
-  timeframeInterval,
-  channels
-) =>
+const streamChannelsHistory = (streamChannelHistory) => (params, channels) =>
   K.sequentially(0, channels).flatMapConcurLimit(
-    (c) =>
-      streamChannelHistory(timeframeInterval, c.id).map((xs) => [c.id, xs]),
+    (c) => streamChannelHistory(params, c.id).map((xs) => [c.id, xs]),
     2
   )
 

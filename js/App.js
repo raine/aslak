@@ -4,6 +4,8 @@ import * as _ from 'lodash/fp'
 import Controls from './Controls'
 import Channels from './Channels'
 import { Options } from './Context'
+import { DateTime } from 'luxon'
+import { floorInterval } from './time'
 import cached from './cached'
 import { timeframeToDateTime } from './time'
 
@@ -64,7 +66,15 @@ const App = ({ slack }) => {
     () =>
       unbind(
         slack
-          .streamChannelsHistoryCached(timeframeInterval, channels)
+          .streamChannelsHistoryCached(
+            {
+              oldest: floorInterval(
+                5,
+                DateTime.fromJSDate(timeframeInterval[0])
+              ).toSeconds()
+            },
+            channels
+          )
           .onValue(([channelId, messages]) => {
             setMessages(updateChannelMessages(channelId, messages))
           })
