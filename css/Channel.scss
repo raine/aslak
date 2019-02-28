@@ -13,10 +13,10 @@
     padding-bottom: 4px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
 
-    .link {
+    .name {
       color: hsl(0, 0%, 20%);
-      flex-grow: 1;
     }
 
     .message-count {

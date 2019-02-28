@@ -52,7 +52,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
     <div className="channel">
       <div className="header">
         <a
-          className="link"
+          className="name"
           href={slack.formatChannelLink(slack.getCachedTeamId(), id)}
         >
           #{name}
