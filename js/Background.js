@@ -29,7 +29,8 @@ const Background = React.memo(
               fontWeight: pickFromArray(WEIGHTS, item.id),
               ...props
             }}
-          >{`#${item.name} `}</animated.span>
+            data-text={`#${item.name} `}
+          />
         ))}
       </div>
     )
