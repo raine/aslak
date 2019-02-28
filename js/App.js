@@ -1,8 +1,8 @@
 import React, { Fragment, useState, useEffect } from 'react'
 import Background from './Background'
-import Channel from './Channel'
 import * as _ from 'lodash/fp'
 import Controls from './Controls'
+import Channels from './Channels'
 import { Options } from './Context'
 import cached from './cached'
 import { timeframeToDateTime } from './time'
@@ -30,16 +30,6 @@ const getChannelsByListType = (type, allChannels) =>
   // prettier-ignore
   type === 'POPULAR'   ? allChannels.slice(0, 32) :
   type === 'MEMBER_OF' ? allChannels.filter((c) => c.is_member) : []
-
-const Channels = React.memo(({ channels, messages }) => (
-  <div className="channels">
-    {channels.map((c) => (
-      <Channel key={c.id} id={c.id} name={c.name} messages={messages[c.id]} />
-    ))}
-  </div>
-))
-
-Channels.displayName = 'Channels'
 
 const App = ({ slack }) => {
   const [allChannels, setAllChannels] = useState([])
