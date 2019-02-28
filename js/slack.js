@@ -4,7 +4,7 @@ import qs from 'querystring'
 import * as _ from 'lodash/fp'
 import { fromSlackTimestamp } from './time'
 import K from 'kefir'
-import lscache from 'lscache'
+import pMemoize from 'promise-memoize'
 
 const REDIRECT_URI = `${location.protocol}//${location.host}${
   location.pathname
@@ -15,38 +15,11 @@ const X_WWW_FORM_URLENCODED = {
   'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
 }
 
-// 53-bit hash function from stackoverflow
-var cyrb53 = function(str, seed = 0) {
-  var h1 = 0xdeadbeef ^ seed,
-    h2 = 0x41c6ce57 ^ seed
-  for (var i = 0, ch; i < str.length; i++) {
-    ch = str.charCodeAt(i)
-    h1 = Math.imul(h1 ^ ch, 2654435761)
-    h2 = Math.imul(h2 ^ ch, 1597334677)
-  }
-  h1 =
-    Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^
-    Math.imul(h2 ^ (h2 >>> 13), 3266489909)
-  h2 =
-    Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^
-    Math.imul(h1 ^ (h1 >>> 13), 3266489909)
-  return 4294967296 * (2097151 & h2) + (h1 >>> 0)
-}
-
-const lsMemoize = (fn, ttl, keyPrefix = '') => (...args) => {
-  const key = cyrb53(`${keyPrefix}_${JSON.stringify(args)}`)
-  const cached = lscache.get(key)
-  return cached
-    ? Promise.resolve(cached)
-    : fn(...args).then((res) => {
-        lscache.set(key, res, ttl)
-        return res
-      })
-}
-
 export const login = () => initSlack(SLACK_CLIENT_ID, SLACK_CLIENT_SECRET)
 
-export const init = (token, cacheTTL = 5) => {
+const DEFAULT_TTL = 5 * 60 * 1000
+
+export const init = (token, cacheTTL = DEFAULT_TTL) => {
   const api = {}
   api.get = get(token, fetchJSON)
   api.getCached = get(token, fetchJSONCached(cacheTTL))
@@ -105,7 +78,7 @@ const get = (token, fetch) => (method, params) =>
     }
   })
 
-const fetchJSONCached = (ttl) => lsMemoize(fetchJSON, ttl)
+const fetchJSONCached = (ttl) => pMemoize(fetchJSON, { maxAge: ttl })
 
 const getAll = (get) => (method, params, property) => {
   const recur = (acc, promise) =>
