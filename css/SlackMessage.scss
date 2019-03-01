@@ -48,6 +48,17 @@
     word-break: break-word;
   }
 
+  .open-in-slack {
+    font-size: 12px;
+    color: #616061;
+    margin-top: 0.4rem;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   .message-image {
     margin-top: 0.6em;
     display: block;

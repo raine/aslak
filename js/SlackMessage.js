@@ -28,7 +28,14 @@ const SlackMessageImage = React.memo((file) => {
 SlackMessageImage.displayName = 'SlackMessageImage'
 
 const SlackMessage = React.memo((props) => {
-  const { text, user: userId, ts, scheduleUpdate, files = [] } = props
+  const {
+    text,
+    user: userId,
+    ts,
+    scheduleUpdate,
+    files = [],
+    openMessageInSlack
+  } = props
   const { slack } = useContext(Options)
   const [user, setUser] = useState(null)
   const textHtml = useMemo(
@@ -69,6 +76,9 @@ const SlackMessage = React.memo((props) => {
             {files[0] && files[0].thumb_360 && (
               <SlackMessageImage {...files[0]} />
             )}
+            <span className="open-in-slack" onClick={openMessageInSlack}>
+              Open message in Slack
+            </span>
           </div>
         </animated.div>
       )

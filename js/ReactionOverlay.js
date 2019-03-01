@@ -10,8 +10,7 @@ import { useSpring, animated } from 'react-spring'
 import { useThrottle } from 'use-lodash-debounce-throttle'
 import { Options } from './Context'
 
-const fixEmojiName = (name) =>
-  name.replace(/::skin-tone-\d/, '')
+const fixEmojiName = (name) => name.replace(/::skin-tone-\d/, '')
 
 const calcPushedLeftOffset = (reaction) =>
   Math.sqrt(1 / Math.abs(reaction.offsetX)) *
@@ -42,7 +41,7 @@ const Reaction = React.memo(
         300
       )
     }
-    const onClick = () => {
+    const openMessageInSlack = () => {
       slack
         .getMessagePermaLink(channelId, msg.slackTs)
         .then(({ permalink }) => {
@@ -83,7 +82,6 @@ const Reaction = React.memo(
                 className="reaction"
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                onClick={onClick}
                 style={{
                   top: 0,
                   left: left.interpolate((left) => `calc(${left}px - 10px)`),
@@ -120,7 +118,11 @@ const Reaction = React.memo(
                   onMouseEnter={onMouseEnter}
                   onMouseLeave={onMouseLeave}
                 >
-                  <SlackMessage {...msg} scheduleUpdate={scheduleUpdate} />
+                  <SlackMessage
+                    {...msg}
+                    openMessageInSlack={openMessageInSlack}
+                    scheduleUpdate={scheduleUpdate}
+                  />
                 </div>
               )}
             </Popper>
