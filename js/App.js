@@ -2,8 +2,9 @@ import React, { Fragment, useState, useEffect } from 'react'
 import Background from './Background'
 import * as _ from 'lodash/fp'
 import Controls from './Controls'
+import NewWindow from 'react-new-window'
 import Channels from './Channels'
-import { Options } from './Context'
+import State from './Context'
 import { DateTime } from 'luxon'
 import { floorInterval } from './time'
 import cached from './cached'
@@ -28,12 +29,36 @@ const updateChannelMessages = (id, channelMessages) => (messages) => ({
 
 const unbind = (k) => k.offValue.bind(k)
 
+const openMessageInSlack = (slack, setMessagePermalinkUrl) => (
+  channelId,
+  slackTs
+) => {
+  slack.getMessagePermaLink(channelId, slackTs).then(({ permalink }) => {
+    setMessagePermalinkUrl(permalink)
+    // Automatically close the popup and hope that slack had opened
+    // during the timeout delay
+    setTimeout(() => {
+      setMessagePermalinkUrl(null)
+    }, 3000)
+  })
+}
+
 const getChannelsByListType = (type, allChannels) =>
   // prettier-ignore
   type === 'POPULAR'   ? allChannels.slice(0, 32) :
   type === 'MEMBER_OF' ? allChannels.filter((c) => c.is_member) : []
 
+const SlackMessagePopup = ({ messagePermalinkUrl }) => (
+  <NewWindow
+    copyStyles={false}
+    center={false}
+    features={{ width: 400, height: 450, left: 0, top: 0 }}
+    url={messagePermalinkUrl}
+  />
+)
+
 const App = ({ slack }) => {
+  const [messagePermalinkUrl, setMessagePermalinkUrl] = useState(null)
   const [allChannels, setAllChannels] = useState([])
   const [channels, setChannels] = useState([])
   const [messages, setMessages] = useState({})
@@ -45,7 +70,8 @@ const App = ({ slack }) => {
     ],
     channelListType: DEFAULT_CHANNEL_LIST_TYPE,
     slack,
-    emojis: {}
+    emojis: {},
+    openMessageInSlack: openMessageInSlack(slack, setMessagePermalinkUrl)
   })
 
   const { channelListType, timeframe, timeframeInterval } = appState
@@ -84,6 +110,9 @@ const App = ({ slack }) => {
 
   return (
     <Fragment>
+      {messagePermalinkUrl && (
+        <SlackMessagePopup messagePermalinkUrl={messagePermalinkUrl} />
+      )}
       <Background channels={allChannels} />
       <div className="app-container">
         <Controls
@@ -93,11 +122,11 @@ const App = ({ slack }) => {
             setAppState
           }}
         />
-        <Options.Provider value={appState}>
+        <State.Provider value={appState}>
           {channels.length > 0 && (
             <Channels channels={channels} messages={messages} />
           )}
-        </Options.Provider>
+        </State.Provider>
       </div>
     </Fragment>
   )

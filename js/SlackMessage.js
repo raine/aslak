@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useMemo } from 'react'
 import { useTransition, animated } from 'react-spring'
 import { DateTime } from 'luxon'
 import slackdown from 'slackdown'
-import { Options } from './Context'
+import State from './Context'
 import xss from 'xss'
 
 import '../css/SlackMessage.scss'
@@ -34,9 +34,10 @@ const SlackMessage = React.memo((props) => {
     ts,
     scheduleUpdate,
     files = [],
-    openMessageInSlack
+    slackTs,
+    channelId
   } = props
-  const { slack } = useContext(Options)
+  const { slack, openMessageInSlack } = useContext(State)
   const [user, setUser] = useState(null)
   const textHtml = useMemo(
     () => ({ __html: xss(slackdown.parse(text).replace(/\n/g, '<br />')) }),
@@ -76,7 +77,10 @@ const SlackMessage = React.memo((props) => {
             {files[0] && files[0].thumb_360 && (
               <SlackMessageImage {...files[0]} />
             )}
-            <span className="open-in-slack" onClick={openMessageInSlack}>
+            <span
+              className="open-in-slack"
+              onClick={() => openMessageInSlack(channelId, slackTs)}
+            >
               Open message in Slack
             </span>
           </div>

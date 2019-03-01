@@ -1,7 +1,7 @@
 import React, { useContext, useMemo } from 'react'
 import * as d3time from 'd3-time'
 import * as _ from 'lodash/fp'
-import { Options } from './Context'
+import State from './Context'
 import makeTicks from './make-ticks'
 import ReactionOverlay from './ReactionOverlay'
 import Plot from './Plot'
@@ -30,7 +30,7 @@ const toActivityData = (ticks, data) =>
   })
 
 const Channel = React.memo(({ id, name, messages = [] }) => {
-  const { timeframe, timeframeInterval, slack } = useContext(Options)
+  const { timeframe, timeframeInterval, slack } = useContext(State)
   const [timeframeFrom, timeframeTo] = timeframeInterval
   const dataTicks = useMemo(
     () => makeTicks(timeframeFrom, timeframeTo, dataTickStep(timeframe)),

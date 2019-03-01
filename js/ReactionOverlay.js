@@ -3,12 +3,11 @@ import { Manager, Reference, Popper } from 'react-popper'
 import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
-import NewWindow from 'react-new-window'
 import SlackMessage from './SlackMessage'
 import emojiShortcodeToChar from '../emojis.json'
 import { useSpring, animated } from 'react-spring'
 import { useThrottle } from 'use-lodash-debounce-throttle'
-import { Options } from './Context'
+import State from './Context'
 
 const fixEmojiName = (name) => name.replace(/::skin-tone-\d/, '')
 
@@ -18,13 +17,12 @@ const calcPushedLeftOffset = (reaction) =>
   (reaction.offsetX < 0 ? -1 : 1)
 
 const Reaction = React.memo(
-  ({ name, count, left: leftPos, promote, channelId, msg }) => {
+  ({ name, count, left: leftPos, promote, msg, channelId }) => {
     const mouseEnterTimeoutRef = useRef(null)
     const mouseLeaveTimeoutRef = useRef(null)
     // const [popupVisible, setPopupVisible] = useState(/* false */ msg.slackTs === '1551011539.089100')
     const [popupVisible, setPopupVisible] = useState(false)
-    const [messagePermalinkUrl, setMessagePermalinkUrl] = useState(null)
-    const { slack, emojis } = useContext(Options)
+    const { emojis } = useContext(State)
     const emoji = fixEmojiName(name)
     const emojiUrl = emojis[emoji]
     const onMouseEnter = () => {
@@ -41,18 +39,6 @@ const Reaction = React.memo(
         300
       )
     }
-    const openMessageInSlack = () => {
-      slack
-        .getMessagePermaLink(channelId, msg.slackTs)
-        .then(({ permalink }) => {
-          setMessagePermalinkUrl(permalink)
-          // Automatically close the popup and hope that slack had opened
-          // during the timeout delay
-          setTimeout(() => {
-            setMessagePermalinkUrl(null)
-          }, 3000)
-        })
-    }
     const { scale, left, boxShadow } = useSpring({
       to: {
         scale: promote ? 1.25 : 1.0,
@@ -65,14 +51,6 @@ const Reaction = React.memo(
     })
     return (
       <React.Fragment>
-        {messagePermalinkUrl && (
-          <NewWindow
-            copyStyles={false}
-            center={false}
-            features={{ width: 400, height: 450, left: 0, top: 0 }}
-            url={messagePermalinkUrl}
-          />
-        )}
         <Manager>
           <Reference>
             {({ ref }) => (
@@ -120,8 +98,8 @@ const Reaction = React.memo(
                 >
                   <SlackMessage
                     {...msg}
-                    openMessageInSlack={openMessageInSlack}
                     scheduleUpdate={scheduleUpdate}
+                    channelId={channelId}
                   />
                 </div>
               )}
