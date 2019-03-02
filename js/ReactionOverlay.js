@@ -49,7 +49,6 @@ const Reaction = React.memo(({ name, count, left: leftPos, promote, msg }) => {
           {({ ref }) => (
             <animated.div
               ref={ref}
-              title={`:${emoji}:`}
               className="reaction"
               onMouseEnter={onMouseEnter}
               onMouseLeave={onMouseLeave}
