@@ -27,8 +27,8 @@ const SlackMessageImage = React.memo((file) => {
 
 SlackMessageImage.displayName = 'SlackMessageImage'
 
-const SlackMessage = React.memo((msg) => {
-  const { text, user: userId, ts, scheduleUpdate, files = [] } = msg
+const SlackMessage = React.memo(({ show, msg, scheduleUpdate }) => {
+  const { text, user: userId, ts, files = [] } = msg
   const { slack, openMessageInSlack } = useContext(State)
   const [user, setUser] = useState(null)
   const textHtml = useMemo(
@@ -41,7 +41,7 @@ const SlackMessage = React.memo((msg) => {
   useEffect(() => {
     slack.getUserInfo(userId).then(setUser)
   }, [setUser])
-  const transitions = useTransition(user, null, {
+  const transitions = useTransition(show && user, null, {
     from: { opacity: 0 },
     enter: { opacity: 1 },
     leave: { opacity: 0 }

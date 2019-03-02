@@ -30,7 +30,7 @@ const Reaction = React.memo(({ name, count, left: leftPos, promote, msg }) => {
   }
   const onMouseLeave = () => {
     clearTimeout(mouseEnterTimeoutRef.current)
-    mouseLeaveTimeoutRef.current = setTimeout(() => setPopupVisible(false), 300)
+    mouseLeaveTimeoutRef.current = setTimeout(() => setPopupVisible(false), 200)
   }
   const { scale, left, boxShadow } = useSpring({
     to: {
@@ -73,27 +73,29 @@ const Reaction = React.memo(({ name, count, left: leftPos, promote, msg }) => {
             </animated.div>
           )}
         </Reference>
-        {popupVisible && (
-          <Popper
-            placement="auto"
-            modifiers={{
-              arrow: { enabled: false }
-            }}
-          >
-            {({ ref, style, placement, scheduleUpdate }) => (
-              <div
-                ref={ref}
-                style={style}
-                className="popper-container"
-                data-placement={placement}
-                onMouseEnter={onMouseEnter}
-                onMouseLeave={onMouseLeave}
-              >
-                <SlackMessage {...msg} scheduleUpdate={scheduleUpdate} />
-              </div>
-            )}
-          </Popper>
-        )}
+        <Popper
+          placement="auto"
+          modifiers={{
+            arrow: { enabled: false }
+          }}
+        >
+          {({ ref, style, placement, scheduleUpdate }) => (
+            <div
+              ref={ref}
+              style={style}
+              className="popper-container"
+              data-placement={placement}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+            >
+              <SlackMessage
+                show={popupVisible}
+                scheduleUpdate={scheduleUpdate}
+                msg={msg}
+              />
+            </div>
+          )}
+        </Popper>
       </Manager>
     </React.Fragment>
   )
