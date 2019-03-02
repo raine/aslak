@@ -73,7 +73,8 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
                 width,
                 xDomain,
                 yDomain,
-                data
+                data,
+                messagesWithinTimeframe
               }}
             />
             {messagesWithinTimeframe.length ? (
@@ -82,7 +83,6 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
                 width={width - PLOT_MARGIN.left - PLOT_MARGIN.right}
                 xDomain={xDomain}
                 messages={messagesWithinTimeframe}
-                channelId={id}
               />
             ) : null}
           </div>

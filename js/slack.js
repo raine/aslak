@@ -158,25 +158,26 @@ const getChannels = (getAll) => () =>
     ])
   )
 
-const sanitizeMessages = _.pipe([
+const sanitizeMessages = (channelId) => _.pipe([
   _.reject((msg) => msg.subtype === 'bot_message'),
   _.map((msg) => ({
     ...msg,
     slackTs: msg.ts,
-    ts: fromSlackTimestamp(msg.ts).toJSDate()
+    ts: fromSlackTimestamp(msg.ts).toJSDate(),
+    channelId
   }))
 ])
 
-const streamChannelHistory = (getAllStreamed) => (params, id) =>
+const streamChannelHistory = (getAllStreamed) => (params, channelId) =>
   getAllStreamed(
     'conversations.history',
     {
       limit: 1000,
-      channel: id,
+      channel: channelId,
       ...params
     },
     'messages'
-  ).map(sanitizeMessages)
+  ).map(sanitizeMessages(channelId))
 
 const streamChannelsHistory = (streamChannelHistory) => (params, channels) =>
   K.sequentially(0, channels).flatMapConcurLimit(

@@ -29,10 +29,10 @@ const updateChannelMessages = (id, channelMessages) => (messages) => ({
 
 const unbind = (k) => k.offValue.bind(k)
 
-const openMessageInSlack = (slack, setMessagePermalinkUrl) => (
+const openMessageInSlack = (slack, setMessagePermalinkUrl) => ({
   channelId,
   slackTs
-) => {
+}) => {
   slack.getMessagePermaLink(channelId, slackTs).then(({ permalink }) => {
     setMessagePermalinkUrl(permalink)
     // Automatically close the popup and hope that slack had opened

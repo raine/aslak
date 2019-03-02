@@ -1,8 +1,13 @@
 import { XYPlot, VerticalBarSeries, XAxis } from 'react-vis'
+import classNames from 'classnames'
+import { scaleLinear } from 'd3-scale'
 import * as d3time from 'd3-time'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useCallback, useContext } from 'react'
 import { DateTime } from 'luxon'
 import makeTicks from './make-ticks'
+import State from './Context'
+
+import '../css/Plot.scss'
 
 const chartTickStep = (timeframe) =>
   // prettier-ignore
@@ -20,21 +25,90 @@ const formatTick = (timeframe) => (v) =>
    timeframe === '4w' ? 'MMM d' : null
   )
 
+const findMessageClosestToTimestamp = (messages, timestamp) =>
+  messages.reduce((prev, curr) =>
+    Math.abs(curr.ts.getTime() - timestamp) <
+    Math.abs(prev.ts.getTime() - timestamp)
+      ? curr
+      : prev
+  )
+
+const findDataPointForMessage = (data, msg) =>
+  data.find(({ x }, idx, all) => {
+    const next = all[idx + 1]
+    return msg.ts.getTime() >= x && (next ? msg.ts.getTime() < next.x : true)
+  })
+
 const Plot = React.memo(
-  ({ timeframe, timeframeInterval, width, margin, xDomain, yDomain, data }) => {
+  ({
+    timeframe,
+    timeframeInterval,
+    width,
+    margin,
+    xDomain,
+    yDomain,
+    data,
+    messagesWithinTimeframe
+  }) => {
+    const { openMessageInSlack } = useContext(State)
+    const [msgNearestToCursor, setMsgNearestToCursor] = useState(null)
     const [timeframeFrom, timeframeTo] = timeframeInterval
+    const innerPlotWidth = width - margin.left - margin.right
+    const xRange = [0, innerPlotWidth]
+    const xScale = scaleLinear(xDomain, xRange)
     const chartTicks = useMemo(
       () => makeTicks(timeframeFrom, timeframeTo, chartTickStep(timeframe)),
       [timeframeFrom, timeframeTo]
     )
+
+    // Find data point matching msgNearestToCursor and override the color
+    // property for that data point
+    const dataWithHighlight = useMemo(() => {
+      const d = msgNearestToCursor
+        ? findDataPointForMessage(data, msgNearestToCursor)
+        : null
+      return data.map((_d, idx) => ({
+        ..._d,
+        ...(idx === data.indexOf(d) ? { color: 'hsl(243, 52%, 82%)' } : {})
+      }))
+    }, [msgNearestToCursor, data])
+
+    const onPlotMouseMove = useCallback((ev) => {
+      if (!messagesWithinTimeframe.length) return
+      const el = ev.currentTarget
+      const elDomRect = el.getBoundingClientRect()
+      const mouseX = ev.clientX - elDomRect.left - margin.left
+      const mouseXTimestamp = xScale.invert(mouseX)
+      const msg = findMessageClosestToTimestamp(
+        messagesWithinTimeframe,
+        mouseXTimestamp
+      )
+      setMsgNearestToCursor(
+        msg &&
+          msg.ts.getTime() >= xScale.invert(mouseX - 30) &&
+          msg.ts.getTime() <= xScale.invert(mouseX + 30)
+          ? msg
+          : null
+      )
+    }, [messagesWithinTimeframe, xScale])
+
     return (
       <XYPlot
+        className={classNames({ pointer: msgNearestToCursor })}
         height={150}
         width={width}
         margin={margin}
         animation={false}
         xDomain={xDomain}
         yDomain={yDomain}
+        colorType="literal"
+        onMouseMove={onPlotMouseMove}
+        onMouseLeave={() => {
+          setMsgNearestToCursor(null)
+        }}
+        onClick={() => {
+          if (msgNearestToCursor) openMessageInSlack(msgNearestToCursor)
+        }}
       >
         <XAxis
           tickSizeInner={0}
@@ -42,7 +116,11 @@ const Plot = React.memo(
           tickValues={chartTicks}
           tickFormat={formatTick(timeframe)}
         />
-        <VerticalBarSeries color="#8884d8" barWidth={0.7} data={data} />
+        <VerticalBarSeries
+          color="#8884d8"
+          barWidth={0.7}
+          data={dataWithHighlight}
+        />
       </XYPlot>
     )
   }
