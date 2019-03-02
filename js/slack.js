@@ -158,15 +158,20 @@ const getChannels = (getAll) => () =>
     ])
   )
 
-const sanitizeMessages = (channelId) => _.pipe([
-  _.reject((msg) => msg.subtype === 'bot_message'),
-  _.map((msg) => ({
-    ...msg,
-    slackTs: msg.ts,
-    ts: fromSlackTimestamp(msg.ts).toJSDate(),
-    channelId
-  }))
-])
+const sanitizeMessages = (channelId) =>
+  _.pipe([
+    _.reject((msg) => msg.subtype === 'bot_message'),
+    _.map((msg) => {
+      const datetime = fromSlackTimestamp(msg.ts)
+      return {
+        ...msg,
+        tsMillis: datetime.toMillis(),
+        date: datetime.toJSDate(),
+        datetime,
+        channelId
+      }
+    })
+  ])
 
 const streamChannelHistory = (getAllStreamed) => (params, channelId) =>
   getAllStreamed(

@@ -28,7 +28,7 @@ const SlackMessageImage = React.memo((file) => {
 SlackMessageImage.displayName = 'SlackMessageImage'
 
 const SlackMessage = React.memo(({ show, msg, scheduleUpdate }) => {
-  const { text, user: userId, ts, files = [] } = msg
+  const { text, user: userId, datetime, files = [] } = msg
   const { slack, openMessageInSlack } = useContext(State)
   const [user, setUser] = useState(null)
   const textHtml = useMemo(
@@ -61,9 +61,7 @@ const SlackMessage = React.memo(({ show, msg, scheduleUpdate }) => {
           <div className="message-column">
             <div className="message-top-row">
               <span className="sender">{user.profile.real_name}</span>
-              <span className="timestamp">
-                {DateTime.fromJSDate(ts).toFormat('HH:mm')}
-              </span>
+              <span className="timestamp">{datetime.toFormat('HH:mm')}</span>
             </div>
             <div className="message-text" dangerouslySetInnerHTML={textHtml} />
             {files[0] && files[0].thumb_360 && (

@@ -22,8 +22,8 @@ const toActivityData = (ticks, data) =>
     return {
       x: tick,
       y: data.reduce(
-        (acc, { ts }) =>
-          ts > tick && (nextTick ? ts < nextTick : true) ? acc + 1 : acc,
+        (acc, { date }) =>
+          date > tick && (nextTick ? date < nextTick : true) ? acc + 1 : acc,
         0
       )
     }
@@ -37,7 +37,8 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
     [timeframeFrom, timeframeTo, timeframe]
   )
   const messagesWithinTimeframe = useMemo(
-    () => messages.filter((m) => m.ts >= timeframeFrom && m.ts <= timeframeTo),
+    () =>
+      messages.filter((m) => m.date >= timeframeFrom && m.date <= timeframeTo),
     [messages, timeframeFrom, timeframeTo]
   )
   const data = useMemo(

@@ -5,6 +5,6 @@ const makeTicks = (from, to, step) =>
     .scaleTime()
     .domain([from, to])
     .ticks(step)
-    .map((x) => x.getTime())
+    .map((date) => date.getTime())
 
 export default makeTicks

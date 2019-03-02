@@ -19,7 +19,7 @@ const calcPushedLeftOffset = (reaction) =>
 const Reaction = React.memo(({ name, count, left: leftPos, promote, msg }) => {
   const mouseEnterTimeoutRef = useRef(null)
   const mouseLeaveTimeoutRef = useRef(null)
-  // const [popupVisible, setPopupVisible] = useState(/* false */ msg.slackTs === '1551011539.089100')
+  // const [popupVisible, setPopupVisible] = useState(/* false */ msg.ts === '1551011539.089100')
   const [popupVisible, setPopupVisible] = useState(false)
   const { emojis } = useContext(State)
   const emoji = fixEmojiName(name)
@@ -113,7 +113,7 @@ const getNormalizedReactions = _.pipe([
   _.filter((r) => r.count > 1),
   // Take the most popular reaction from each message
   _.orderBy((r) => r.count, ['desc']),
-  _.uniqBy((r) => r.msg.slackTs),
+  _.uniqBy((r) => r.msg.ts),
   // Sort in ascending order to have reactions with larger count render on top
   _.orderBy((r) => r.count, ['asc'])
 ])
@@ -133,7 +133,7 @@ const ReactionOverlay = React.memo(({ width, left, xDomain, messages }) => {
   const [nearbyReactions, setNearbyReactions] = useState({})
   const reactions = useMemo(() => getNormalizedReactions(messages), [messages])
   const reactionsWithPositions = useMemo(
-    () => _.map((r) => ({ ...r, left: xScale(r.msg.ts) }), reactions),
+    () => _.map((r) => ({ ...r, left: xScale(r.msg.tsMillis) }), reactions),
     [reactions, xScale]
   )
 
@@ -157,13 +157,11 @@ const ReactionOverlay = React.memo(({ width, left, xDomain, messages }) => {
     setNearbyReactions(
       isNearMouse
         ? reactionsWithPositions.reduce((acc, r) => {
-            if (r.msg.slackTs === reaction.msg.slackTs) return acc
+            if (r.msg.ts === reaction.msg.ts) return acc
             const offsetX = mouseX - r.left
             return {
               ...acc,
-              ...(Math.abs(offsetX) < 15
-                ? { [r.msg.slackTs]: { offsetX } }
-                : {})
+              ...(Math.abs(offsetX) < 15 ? { [r.msg.ts]: { offsetX } } : {})
             }
           }, {})
         : {}
@@ -189,17 +187,15 @@ const ReactionOverlay = React.memo(({ width, left, xDomain, messages }) => {
       }}
     >
       {reactionsWithPositions.map(({ msg, left, ...rest }) => {
-        const nr = nearbyReactions[msg.slackTs]
+        const nr = nearbyReactions[msg.ts]
 
         return (
           <Reaction
-            key={msg.slackTs}
+            key={msg.ts}
             msg={msg}
             left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
             promote={
-              reactionNearMouse
-                ? reactionNearMouse.msg.slackTs === msg.slackTs
-                : false
+              reactionNearMouse ? reactionNearMouse.msg.ts === msg.ts : false
             }
             {...rest}
           />

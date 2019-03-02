@@ -27,8 +27,8 @@ const formatTick = (timeframe) => (v) =>
 
 const findMessageClosestToTimestamp = (messages, timestamp) =>
   messages.reduce((prev, curr) =>
-    Math.abs(curr.ts.getTime() - timestamp) <
-    Math.abs(prev.ts.getTime() - timestamp)
+    Math.abs(curr.tsMillis - timestamp) <
+    Math.abs(prev.tsMillis - timestamp)
       ? curr
       : prev
   )
@@ -36,7 +36,7 @@ const findMessageClosestToTimestamp = (messages, timestamp) =>
 const findDataPointForMessage = (data, msg) =>
   data.find(({ x }, idx, all) => {
     const next = all[idx + 1]
-    return msg.ts.getTime() >= x && (next ? msg.ts.getTime() < next.x : true)
+    return msg.tsMillis >= x && (next ? msg.tsMillis < next.x : true)
   })
 
 const Plot = React.memo(
@@ -85,8 +85,8 @@ const Plot = React.memo(
       )
       setMsgNearestToCursor(
         msg &&
-          msg.ts.getTime() >= xScale.invert(mouseX - 30) &&
-          msg.ts.getTime() <= xScale.invert(mouseX + 30)
+          msg.tsMillis >= xScale.invert(mouseX - 30) &&
+          msg.tsMillis <= xScale.invert(mouseX + 30)
           ? msg
           : null
       )

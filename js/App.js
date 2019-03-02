@@ -22,7 +22,7 @@ const DEFAULT_MESSAGES = []
 const updateChannelMessages = (id, channelMessages) => (messages) => ({
   ...messages,
   [id]: _.uniqBy(
-    (m) => m.slackTs,
+    (m) => m.ts,
     (messages[id] || DEFAULT_MESSAGES).concat(channelMessages)
   )
 })
@@ -31,9 +31,9 @@ const unbind = (k) => k.offValue.bind(k)
 
 const openMessageInSlack = (slack, setMessagePermalinkUrl) => ({
   channelId,
-  slackTs
+  ts
 }) => {
-  slack.getMessagePermaLink(channelId, slackTs).then(({ permalink }) => {
+  slack.getMessagePermaLink(channelId, ts).then(({ permalink }) => {
     setMessagePermalinkUrl(permalink)
     // Automatically close the popup and hope that slack had opened
     // during the timeout delay
