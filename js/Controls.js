@@ -12,8 +12,7 @@ const TIMEFRAMES = [
 ]
 const CHANNEL_SELECTION = [
   { key: 'MEMBER_OF', text: 'my channels' },
-  { key: 'POPULAR', text: 'popular channels' },
-  { key: 'RANDOM', text: 'surprise me' }
+  { key: 'POPULAR', text: 'popular channels' }
 ]
 
 const Controls = React.memo(({ dispatch, timeframe, channelListType }) => {
