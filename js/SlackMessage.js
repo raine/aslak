@@ -1,5 +1,11 @@
-import React, { useContext, useEffect, useState, useMemo } from 'react'
-import { useTransition, animated } from 'react-spring'
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+  useLayoutEffect
+} from 'react'
+import { useSpring, animated } from 'react-spring'
 import slackdown from 'slackdown'
 import State from './Context'
 import xss from 'xss'
@@ -26,57 +32,63 @@ const SlackMessageImage = React.memo((file) => {
 
 SlackMessageImage.displayName = 'SlackMessageImage'
 
-const SlackMessage = React.memo(({ show, msg, scheduleUpdate }) => {
-  const { text, user: userId, datetime, files = [] } = msg
-  const { slack, openMessageInSlack } = useContext(State)
-  const [user, setUser] = useState(null)
-  const textHtml = useMemo(
-    () => ({ __html: xss(slackdown.parse(text).replace(/\n/g, '<br />')) }),
-    [text]
-  )
-  useEffect(() => {
-    scheduleUpdate()
-  }, [user])
-  useEffect(() => {
-    slack.getUserInfo(userId).then(setUser)
-  }, [setUser])
-  const transitions = useTransition(show && user, null, {
-    from: { opacity: 0 },
-    enter: { opacity: 1 },
-    leave: { opacity: 0 }
-  })
-  return transitions.map(
-    ({ item, key, props }) =>
-      item && (
-        <animated.div key={key} className="slack-message" style={props}>
-          <div className="avatar-column">
-            <div className="avatar-background">
-              <img
-                src={user.profile.image_48}
-                srcSet={`${user.profile.image_72} 2x`}
-              />
-            </div>
+const SlackMessage = React.memo(
+  ({ isVisible, msg, scheduleUpdate, onFadeOutDone }) => {
+    const { text, user: userId, datetime, files = [] } = msg
+    const { slack, openMessageInSlack } = useContext(State)
+    const [user, setUser] = useState(null)
+    const textHtml = useMemo(
+      () => ({ __html: xss(slackdown.parse(text).replace(/\n/g, '<br />')) }),
+      [text]
+    )
+
+    useLayoutEffect(() => {
+      scheduleUpdate()
+    }, [user])
+
+    useEffect(() => {
+      slack.getUserInfo(userId).then(setUser)
+    }, [setUser])
+
+    const props = useSpring({
+      from: { opacity: 0 },
+      to: (next) =>
+        next({ opacity: isVisible && user ? 1 : 0 }).then(() => {
+          if (user && !isVisible) onFadeOutDone()
+        }),
+      config: { duration: 200 }
+    })
+
+    return user ? (
+      <animated.div className="slack-message" style={props}>
+        <div className="avatar-column">
+          <div className="avatar-background">
+            <img
+              src={user.profile.image_48}
+              srcSet={`${user.profile.image_72} 2x`}
+            />
           </div>
-          <div className="message-column">
-            <div className="message-top-row">
-              <span className="sender">{user.profile.real_name}</span>
-              <span className="timestamp">{datetime.toFormat('HH:mm')}</span>
-            </div>
-            <div className="message-text" dangerouslySetInnerHTML={textHtml} />
-            {files[0] && files[0].thumb_360 && (
-              <SlackMessageImage {...files[0]} />
-            )}
-            <span
-              className="open-in-slack"
-              onClick={() => openMessageInSlack(msg)}
-            >
-              Open message in Slack
-            </span>
+        </div>
+        <div className="message-column">
+          <div className="message-top-row">
+            <span className="sender">{user.profile.real_name}</span>
+            <span className="timestamp">{datetime.toFormat('HH:mm')}</span>
           </div>
-        </animated.div>
-      )
-  )
-})
+          <div className="message-text" dangerouslySetInnerHTML={textHtml} />
+          {files[0] && files[0].thumb_360 && (
+            <SlackMessageImage {...files[0]} />
+          )}
+          <span
+            className="open-in-slack"
+            onClick={() => openMessageInSlack(msg)}
+          >
+            Open message in Slack
+          </span>
+        </div>
+      </animated.div>
+    ) : null
+  }
+)
 
 SlackMessage.displayName = 'SlackMessage'
 

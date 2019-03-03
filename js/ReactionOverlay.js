@@ -19,18 +19,24 @@ const calcPushedLeftOffset = (reaction) =>
 const Reaction = React.memo(({ name, count, left: leftPos, promote, msg }) => {
   const mouseEnterTimeoutRef = useRef(null)
   const mouseLeaveTimeoutRef = useRef(null)
-  // const [popupVisible, setPopupVisible] = useState(/* false */ msg.ts === '1551011539.089100')
-  const [popupVisible, setPopupVisible] = useState(false)
+  const [showPopper, setShowPopper] = useState(false)
+  const [showSlackMessage, setShowSlackMessage] = useState(false)
   const { emojis } = useContext(State)
   const emoji = fixEmojiName(name)
   const emojiUrl = emojis[emoji]
   const onMouseEnter = () => {
     clearTimeout(mouseLeaveTimeoutRef.current)
-    mouseEnterTimeoutRef.current = setTimeout(() => setPopupVisible(true), 300)
+    mouseEnterTimeoutRef.current = setTimeout(() => {
+      setShowPopper(true)
+      setShowSlackMessage(true)
+    }, 300)
   }
   const onMouseLeave = () => {
     clearTimeout(mouseEnterTimeoutRef.current)
-    mouseLeaveTimeoutRef.current = setTimeout(() => setPopupVisible(false), 200)
+    mouseLeaveTimeoutRef.current = setTimeout(
+      () => setShowSlackMessage(false),
+      200
+    )
   }
   const { scale, left, boxShadow } = useSpring({
     to: {
@@ -72,29 +78,32 @@ const Reaction = React.memo(({ name, count, left: leftPos, promote, msg }) => {
             </animated.div>
           )}
         </Reference>
-        <Popper
-          placement="auto"
-          modifiers={{
-            arrow: { enabled: false }
-          }}
-        >
-          {({ ref, style, placement, scheduleUpdate }) => (
-            <div
-              ref={ref}
-              style={style}
-              className="popper-container"
-              data-placement={placement}
-              onMouseEnter={onMouseEnter}
-              onMouseLeave={onMouseLeave}
-            >
-              <SlackMessage
-                show={popupVisible}
-                scheduleUpdate={scheduleUpdate}
-                msg={msg}
-              />
-            </div>
-          )}
-        </Popper>
+        {showPopper && (
+          <Popper
+            placement="auto"
+            modifiers={{
+              arrow: { enabled: false }
+            }}
+          >
+            {({ ref, style, placement, scheduleUpdate }) => (
+              <div
+                ref={ref}
+                style={style}
+                className="popper-container"
+                data-placement={placement}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+              >
+                <SlackMessage
+                  isVisible={showSlackMessage}
+                  scheduleUpdate={scheduleUpdate}
+                  onFadeOutDone={() => setShowPopper(false)}
+                  msg={msg}
+                />
+              </div>
+            )}
+          </Popper>
+        )}
       </Manager>
     </React.Fragment>
   )
