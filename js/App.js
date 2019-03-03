@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useEffect } from 'react'
+import React, { Fragment, useState, useEffect, useReducer } from 'react'
 import Background from './Background'
 import * as _ from 'lodash/fp'
 import Controls from './Controls'
@@ -39,7 +39,7 @@ const openMessageInSlack = (slack, setMessagePermalinkUrl) => ({
     // during the timeout delay
     setTimeout(() => {
       setMessagePermalinkUrl(null)
-    }, 3000)
+    }, 4000)
   })
 }
 
@@ -57,17 +57,29 @@ const SlackMessagePopup = ({ messagePermalinkUrl }) => (
   />
 )
 
+// prettier-ignore
+const appStateReducer = (state, { type, value }) =>
+  type === 'setTimeframe' ? {
+    ...state,
+    timeframe: value,
+    timeframeInterval: intervalFromTimeframe(value)
+  } :
+  type === 'setChannelListType' ? { ...state, channelListType: value } :
+  type === 'setEmojis' ? { ...state, emojis: value } : state
+
+const intervalFromTimeframe = (timeframe) => [
+  timeframeToDateTime(timeframe).toJSDate(),
+  new Date()
+]
+
 const App = ({ slack }) => {
   const [messagePermalinkUrl, setMessagePermalinkUrl] = useState(null)
   const [allChannels, setAllChannels] = useState([])
   const [channels, setChannels] = useState([])
   const [messages, setMessages] = useState({})
-  const [appState, setAppState] = useState({
+  const [appState, dispatch] = useReducer(appStateReducer, {
     timeframe: DEFAULT_TIMEFRAME,
-    timeframeInterval: [
-      timeframeToDateTime(DEFAULT_TIMEFRAME).toJSDate(),
-      new Date()
-    ],
+    timeframeInterval: intervalFromTimeframe(DEFAULT_TIMEFRAME),
     channelListType: DEFAULT_CHANNEL_LIST_TYPE,
     slack,
     emojis: {},
@@ -78,7 +90,7 @@ const App = ({ slack }) => {
 
   useEffect(() => {
     cached('emoji.list', 120, slack.getEmojiList)().then((emojis) =>
-      setAppState((state) => ({ ...state, emojis }))
+      dispatch({ type: 'setEmojis', value: emojis })
     )
 
     cached('channels', 120, slack.getChannels)().then(setAllChannels)
@@ -119,7 +131,7 @@ const App = ({ slack }) => {
           {...{
             channelListType,
             timeframe,
-            setAppState
+            dispatch
           }}
         />
         <State.Provider value={appState}>

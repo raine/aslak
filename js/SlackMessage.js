@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState, useMemo } from 'react'
 import { useTransition, animated } from 'react-spring'
-import { DateTime } from 'luxon'
 import slackdown from 'slackdown'
 import State from './Context'
 import xss from 'xss'

@@ -1,0 +1,71 @@
+@import 'variables';
+@import 'breakpoints';
+
+.dropdown {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  font-size: 15px;
+  line-height: 15px;
+
+  li {
+    color: hsl(0, 0%, 25%);
+    cursor: pointer;
+    padding: 14px 10px;
+
+    &.selected {
+      font-weight: 700;
+    }
+
+    &:not(.selected) {
+      display: none;
+      color: hsl(0, 0%, 30%);
+    }
+  }
+
+  @include media-breakpoint-only(xs) {
+    &.open {
+      box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.1);
+      border-radius: 0px 0px 4px 4px;
+
+      li {
+        display: block;
+        order: 2;
+
+        &.selected {
+          order: 1;
+          font-weight: 700;
+        }
+
+        &:not(.selected) {
+          border-top: 1px solid hsl(0, 0%, 95%);
+
+          .chevron {
+            display: none;
+          }
+        }
+      }
+    }
+
+    .chevron {
+      margin: 0 0 1px 7px;
+    }
+  }
+
+  @include media-breakpoint-up(sm) {
+    flex-direction: row;
+
+    li {
+      &:not(.selected) {
+        display: inline-block;
+      }
+
+      .chevron {
+        display: none;
+      }
+    }
+  }
+}
