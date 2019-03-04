@@ -35,11 +35,6 @@ const openMessageInSlack = (slack, setMessagePermalinkUrl) => ({
 }) => {
   slack.getMessagePermaLink(channelId, ts).then(({ permalink }) => {
     setMessagePermalinkUrl(permalink)
-    // Automatically close the popup and hope that slack had opened
-    // during the timeout delay
-    setTimeout(() => {
-      setMessagePermalinkUrl(null)
-    }, 4000)
   })
 }
 
@@ -48,12 +43,13 @@ const getChannelsByListType = (type, allChannels) =>
   type === 'POPULAR'   ? allChannels.slice(0, 32) :
   type === 'MEMBER_OF' ? allChannels.filter((c) => c.is_member) : []
 
-const SlackMessagePopup = ({ messagePermalinkUrl }) => (
+const SlackMessagePopup = ({ messagePermalinkUrl, onUnload }) => (
   <NewWindow
     copyStyles={false}
     center={false}
     features={{ width: 400, height: 450, left: 0, top: 0 }}
     url={messagePermalinkUrl}
+    onUnload={onUnload}
   />
 )
 
@@ -123,7 +119,10 @@ const App = ({ slack }) => {
   return (
     <Fragment>
       {messagePermalinkUrl && (
-        <SlackMessagePopup messagePermalinkUrl={messagePermalinkUrl} />
+        <SlackMessagePopup
+          messagePermalinkUrl={messagePermalinkUrl}
+          onUnload={() => setMessagePermalinkUrl(null)}
+        />
       )}
       <Background channels={allChannels} />
       <div className="app-container">
