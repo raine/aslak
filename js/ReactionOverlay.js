@@ -80,7 +80,7 @@ const Reaction = React.memo(({ name, count, left: leftPos, promote, msg }) => {
         </Reference>
         {showPopper && (
           <Popper
-            placement="auto"
+            placement="bottom"
             modifiers={{
               arrow: { enabled: false }
             }}
