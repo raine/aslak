@@ -15,6 +15,10 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: 50% 50%;
+
+    &.animated {
+      background-color: #fff;
+    }
   }
 
   .char-emoji {

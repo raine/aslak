@@ -74,7 +74,7 @@ const Reaction = React.memo(
                   >
                     {animateEmoji ? (
                       <div
-                        className="custom-emoji"
+                        className="custom-emoji animated"
                         style={{
                           backgroundImage: `url(${emojiUrl})`
                         }}
