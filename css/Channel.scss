@@ -1,7 +1,6 @@
 .channel {
   background: #fff;
   border-radius: 4px;
-  height: 185px;
   padding: 0.3rem 0.5rem;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
   font-size: 0.95rem;
@@ -25,11 +24,9 @@
     }
   }
 
-  .plot {
+  .plot-container {
     flex-grow: 1;
     user-select: none;
-    position: relative;
-    margin-top: 5px;
 
     .rv-xy-plot__axis__tick__line {
       stroke: hsl(240, 6%, 75%);

@@ -5,6 +5,7 @@
   display: grid;
   grid-gap: 0.7rem;
   grid-template-columns: repeat(1, 1fr);
+  grid-auto-rows: 185px;
   background: hsla(0, 0%, 0%, 0.05);
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.15);
   padding: 0.7rem;

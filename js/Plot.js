@@ -27,8 +27,7 @@ const formatTick = (timeframe) => (v) =>
 
 const findMessageClosestToTimestamp = (messages, timestamp) =>
   messages.reduce((prev, curr) =>
-    Math.abs(curr.tsMillis - timestamp) <
-    Math.abs(prev.tsMillis - timestamp)
+    Math.abs(curr.tsMillis - timestamp) < Math.abs(prev.tsMillis - timestamp)
       ? curr
       : prev
   )
@@ -44,6 +43,7 @@ const Plot = React.memo(
     timeframe,
     timeframeInterval,
     width,
+    height,
     margin,
     xDomain,
     yDomain,
@@ -94,8 +94,8 @@ const Plot = React.memo(
 
     return (
       <XYPlot
-        className={classNames({ pointer: msgNearestToCursor })}
-        height={150}
+        className={classNames('plot', { pointer: msgNearestToCursor })}
+        height={height}
         width={width}
         margin={margin}
         animation={false}

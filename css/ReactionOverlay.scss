@@ -1,4 +1,19 @@
+.reaction-overlay-container {
+  position: relative;
+  height: 46px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(250, 250, 250, 1) 2%,
+    rgba(250, 250, 250, 1) 98%,
+    rgba(255, 255, 255, 1) 100%
+  );
+}
+
 .reaction-overlay {
   position: absolute;
-  height: 42px;
+  height: 46px;
+  top: 6px;
 }

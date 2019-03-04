@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react'
+import React, { useContext, useMemo, useState, Fragment } from 'react'
 import * as d3time from 'd3-time'
 import * as _ from 'lodash/fp'
 import State from './Context'
@@ -8,7 +8,7 @@ import Plot from './Plot'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import '../css/Channel.scss'
 
-const PLOT_MARGIN = { left: 10, right: 10, top: 40, bottom: 35 }
+const PLOT_MARGIN = { left: 10, right: 10, top: 10, bottom: 35 }
 const dataTickStep = (timeframe) =>
   // prettier-ignore
   timeframe === '1h' ? d3time.timeMinute.every(5)  :
@@ -72,33 +72,34 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
           {messagesWithinTimeframe.length !== 1 ? 's' : ''}
         </span>
       </div>
-      <AutoSizer>
-        {({ width }) => (
-          <div className="plot">
-            <Plot
-              margin={PLOT_MARGIN}
-              {...{
-                timeframe,
-                timeframeInterval,
-                width,
-                xDomain,
-                yDomain,
-                data,
-                messagesWithinTimeframe
-              }}
-            />
-            {messagesWithinTimeframe.length ? (
+      <div className="plot-container">
+        <AutoSizer>
+          {({ height, width }) => (
+            <Fragment>
               <ReactionOverlay
-                left={PLOT_MARGIN.left}
-                width={width - PLOT_MARGIN.left - PLOT_MARGIN.right}
+                parentWidth={width}
+                plotMargin={PLOT_MARGIN}
                 xDomain={xDomain}
                 messages={messagesWithinTimeframe}
                 animateEmoji={animateEmoji}
               />
-            ) : null}
-          </div>
-        )}
-      </AutoSizer>
+              <Plot
+                margin={PLOT_MARGIN}
+                {...{
+                  timeframe,
+                  timeframeInterval,
+                  height: height - 40,
+                  width,
+                  xDomain,
+                  yDomain,
+                  data,
+                  messagesWithinTimeframe
+                }}
+              />
+            </Fragment>
+          )}
+        </AutoSizer>
+      </div>
     </div>
   )
 })

@@ -39,8 +39,8 @@ const Reaction = React.memo(
       to: {
         scale: promote ? 1.25 : 1.0,
         boxShadow: promote
-          ? `0px 0px 8px 1px rgba(0, 0, 0, 0.2)`
-          : `0px 0px 2px 1px rgba(0, 0, 0, 0.1)`,
+          ? `0px 0px 5px 1px rgba(0, 0, 0, 0.15)`
+          : `0px 0px 2px 0px rgba(0, 0, 0, 0.2)`,
         left: leftPos
       },
       config: { mass: 0.5, tension: 250, friction: 20 }

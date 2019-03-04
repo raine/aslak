@@ -34,7 +34,9 @@ const getCoordsRelativeToRect = (domRect, event) => ({
 const X_THRESHOLD = 12
 
 const ReactionOverlay = React.memo(
-  ({ width, left, xDomain, messages, animateEmoji }) => {
+  ({ parentWidth, plotMargin, xDomain, messages, animateEmoji }) => {
+    const width = parentWidth - plotMargin.left - plotMargin.right
+    const left = plotMargin.left
     const overlayRef = useRef(null)
     const xRange = [0, width]
     const xScale = scaleLinear(xDomain, xRange)
@@ -81,38 +83,44 @@ const ReactionOverlay = React.memo(
 
     return (
       <div
-        ref={overlayRef}
-        className="reaction-overlay"
-        style={{
-          width,
-          top: 0,
-          left
-        }}
-        onMouseMove={(ev) => {
-          ev.persist()
-          throttledMouseMove(ev)
-        }}
-        onMouseLeave={() => {
-          setReactionNearMouse(null)
-          setNearbyReactions({})
-        }}
+        className="reaction-overlay-container"
+        style={{ width: parentWidth }}
       >
-        {reactionsWithPositions.map(({ msg, left, ...rest }) => {
-          const nr = nearbyReactions[msg.ts]
+        <div
+          ref={overlayRef}
+          className="reaction-overlay"
+          style={{
+            width,
+            left
+          }}
+          onMouseMove={(ev) => {
+            ev.persist()
+            throttledMouseMove(ev)
+          }}
+          onMouseLeave={() => {
+            setReactionNearMouse(null)
+            setNearbyReactions({})
+          }}
+        >
+          {reactionsWithPositions.map(({ msg, left, ...rest }) => {
+            const nr = nearbyReactions[msg.ts]
 
-          return (
-            <Reaction
-              key={msg.ts}
-              msg={msg}
-              left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
-              promote={
-                reactionNearMouse ? reactionNearMouse.msg.ts === msg.ts : false
-              }
-              animateEmoji={animateEmoji}
-              {...rest}
-            />
-          )
-        })}
+            return (
+              <Reaction
+                key={msg.ts}
+                msg={msg}
+                left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
+                promote={
+                  reactionNearMouse
+                    ? reactionNearMouse.msg.ts === msg.ts
+                    : false
+                }
+                animateEmoji={animateEmoji}
+                {...rest}
+              />
+            )
+          })}
+        </div>
       </div>
     )
   }
