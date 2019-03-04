@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react'
+import React, { useContext, useMemo, useState } from 'react'
 import * as d3time from 'd3-time'
 import * as _ from 'lodash/fp'
 import State from './Context'
@@ -31,6 +31,7 @@ const toActivityData = (ticks, data) =>
 
 const Channel = React.memo(({ id, name, messages = [] }) => {
   const { timeframe, timeframeInterval, slack } = useContext(State)
+  const [animateEmoji, setAnimateEmoji] = useState(false)
   const [timeframeFrom, timeframeTo] = timeframeInterval
   const dataTicks = useMemo(
     () => makeTicks(timeframeFrom, timeframeTo, dataTickStep(timeframe)),
@@ -50,7 +51,15 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
   const xDomain = [_.head(data).x, _.last(data).x]
 
   return (
-    <div className="channel">
+    <div
+      className="channel"
+      onMouseEnter={() => {
+        setAnimateEmoji(true)
+      }}
+      onMouseLeave={() => {
+        setAnimateEmoji(false)
+      }}
+    >
       <div className="header">
         <a
           className="name"
@@ -84,6 +93,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
                 width={width - PLOT_MARGIN.left - PLOT_MARGIN.right}
                 xDomain={xDomain}
                 messages={messagesWithinTimeframe}
+                animateEmoji={animateEmoji}
               />
             ) : null}
           </div>

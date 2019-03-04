@@ -8,15 +8,21 @@
   padding: 2px;
   border-radius: 4px;
 
-  .emoji {
+  .custom-emoji {
+    overflow: hidden;
+    width: 1rem;
+    height: 1rem;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+  }
+
+  .char-emoji {
     overflow: hidden;
     width: 1rem;
     height: 1rem;
     font-size: 15px;
     line-height: 16px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: 50% 50%;
   }
 
   .count {

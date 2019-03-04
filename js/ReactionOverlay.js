@@ -33,85 +33,90 @@ const getCoordsRelativeToRect = (domRect, event) => ({
 
 const X_THRESHOLD = 12
 
-const ReactionOverlay = React.memo(({ width, left, xDomain, messages }) => {
-  const overlayRef = useRef(null)
-  const xRange = [0, width]
-  const xScale = scaleLinear(xDomain, xRange)
-  const [reactionNearMouse, setReactionNearMouse] = useState(null)
-  const [nearbyReactions, setNearbyReactions] = useState({})
-  const reactions = useMemo(() => getNormalizedReactions(messages), [messages])
-  const reactionsWithPositions = useMemo(
-    () => _.map((r) => ({ ...r, left: xScale(r.msg.tsMillis) }), reactions),
-    [reactions, xScale]
-  )
-
-  const throttledMouseMove = useThrottle((ev) => {
-    const overlayEl = overlayRef.current
-    if (overlayEl === null) return
-    const clientRect = overlayEl.getBoundingClientRect()
-    const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
-    // Restrict vertical area on which mouse move can trigger update to
-    // reactions. Fixes this event from firing after mouse leave event and
-    // not clearing promoted reaction state.
-    if (mouseY < 0 || mouseY > 30) return
-    const reaction = _.minBy(
-      (r) => Math.abs(r.left - mouseX),
-      reactionsWithPositions
+const ReactionOverlay = React.memo(
+  ({ width, left, xDomain, messages, animateEmoji }) => {
+    const overlayRef = useRef(null)
+    const xRange = [0, width]
+    const xScale = scaleLinear(xDomain, xRange)
+    const [reactionNearMouse, setReactionNearMouse] = useState(null)
+    const [nearbyReactions, setNearbyReactions] = useState({})
+    const reactions = useMemo(() => getNormalizedReactions(messages), [
+      messages
+    ])
+    const reactionsWithPositions = useMemo(
+      () => _.map((r) => ({ ...r, left: xScale(r.msg.tsMillis) }), reactions),
+      [reactions, xScale]
     )
-    const isNearMouse =
-      reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
 
-    setReactionNearMouse(isNearMouse ? reaction : null)
-    setNearbyReactions(
-      isNearMouse
-        ? reactionsWithPositions.reduce((acc, r) => {
-            if (r.msg.ts === reaction.msg.ts) return acc
-            const offsetX = mouseX - r.left
-            return {
-              ...acc,
-              ...(Math.abs(offsetX) < 15 ? { [r.msg.ts]: { offsetX } } : {})
-            }
-          }, {})
-        : {}
+    const throttledMouseMove = useThrottle((ev) => {
+      const overlayEl = overlayRef.current
+      if (overlayEl === null) return
+      const clientRect = overlayEl.getBoundingClientRect()
+      const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
+      // Restrict vertical area on which mouse move can trigger update to
+      // reactions. Fixes this event from firing after mouse leave event and
+      // not clearing promoted reaction state.
+      if (mouseY < 0 || mouseY > 30) return
+      const reaction = _.minBy(
+        (r) => Math.abs(r.left - mouseX),
+        reactionsWithPositions
+      )
+      const isNearMouse =
+        reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
+
+      setReactionNearMouse(isNearMouse ? reaction : null)
+      setNearbyReactions(
+        isNearMouse
+          ? reactionsWithPositions.reduce((acc, r) => {
+              if (r.msg.ts === reaction.msg.ts) return acc
+              const offsetX = mouseX - r.left
+              return {
+                ...acc,
+                ...(Math.abs(offsetX) < 15 ? { [r.msg.ts]: { offsetX } } : {})
+              }
+            }, {})
+          : {}
+      )
+    }, 50)
+
+    return (
+      <div
+        ref={overlayRef}
+        className="reaction-overlay"
+        style={{
+          width,
+          top: 0,
+          left
+        }}
+        onMouseMove={(ev) => {
+          ev.persist()
+          throttledMouseMove(ev)
+        }}
+        onMouseLeave={() => {
+          setReactionNearMouse(null)
+          setNearbyReactions({})
+        }}
+      >
+        {reactionsWithPositions.map(({ msg, left, ...rest }) => {
+          const nr = nearbyReactions[msg.ts]
+
+          return (
+            <Reaction
+              key={msg.ts}
+              msg={msg}
+              left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
+              promote={
+                reactionNearMouse ? reactionNearMouse.msg.ts === msg.ts : false
+              }
+              animateEmoji={animateEmoji}
+              {...rest}
+            />
+          )
+        })}
+      </div>
     )
-  }, 50)
-
-  return (
-    <div
-      ref={overlayRef}
-      className="reaction-overlay"
-      style={{
-        width,
-        top: 0,
-        left
-      }}
-      onMouseMove={(ev) => {
-        ev.persist()
-        throttledMouseMove(ev)
-      }}
-      onMouseLeave={() => {
-        setReactionNearMouse(null)
-        setNearbyReactions({})
-      }}
-    >
-      {reactionsWithPositions.map(({ msg, left, ...rest }) => {
-        const nr = nearbyReactions[msg.ts]
-
-        return (
-          <Reaction
-            key={msg.ts}
-            msg={msg}
-            left={left - (nr ? calcPushedLeftOffset(nr) : 0)}
-            promote={
-              reactionNearMouse ? reactionNearMouse.msg.ts === msg.ts : false
-            }
-            {...rest}
-          />
-        )
-      })}
-    </div>
-  )
-})
+  }
+)
 
 ReactionOverlay.displayName = 'ReactionOverlay'
 
