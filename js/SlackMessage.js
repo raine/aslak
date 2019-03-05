@@ -56,7 +56,7 @@ const SlackMessage = React.memo(
         next({ opacity: isVisible && user ? 1 : 0 }).then(() => {
           if (user && !isVisible) onFadeOutDone()
         }),
-      config: { duration: 200 }
+      config: { duration: 125 }
     })
 
     return user ? (
