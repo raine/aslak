@@ -10,6 +10,8 @@ const calcPushedLeftOffset = (reaction) =>
   15 *
   (reaction.offsetX < 0 ? -1 : 1)
 
+const MAX_REACTION_COUNT = 20
+
 const getNormalizedReactions = _.pipe([
   _.filter((msg) => msg.reactions),
   _.flatMap((msg) =>
@@ -22,8 +24,17 @@ const getNormalizedReactions = _.pipe([
   // Take the most popular reaction from each message
   _.orderBy((r) => r.count, ['desc']),
   _.uniqBy((r) => r.msg.ts),
+
   // Sort in ascending order to have reactions with larger count render on top
-  _.orderBy((r) => r.count, ['asc'])
+  _.orderBy((r) => r.count, ['asc']),
+
+  (reactions) =>
+    reactions.length <= MAX_REACTION_COUNT
+      ? reactions
+      : _.takeLast(
+          MAX_REACTION_COUNT,
+          reactions.slice((reactions.length + 1) / 2, -1)
+        )
 ])
 
 const getCoordsRelativeToRect = (domRect, event) => ({
