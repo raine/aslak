@@ -94,6 +94,7 @@ const Reaction = React.memo(
           {showPopper && (
             <Popper
               placement="bottom"
+              positionFixed
               modifiers={{
                 arrow: { enabled: false }
               }}
