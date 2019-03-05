@@ -19,4 +19,31 @@
     margin-bottom: 1rem;
     border-radius: 0px 0px 4px 4px;
   }
+
+  .controls-right {
+    display: flex;
+
+    .expand {
+      display: none;
+
+      @include media-breakpoint-up(sm) {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        margin-right: 10px;
+
+        svg {
+          stroke: hsl(0, 0%, 75%);
+        }
+
+        &.active {
+          svg {
+            stroke: hsl(0, 0%, 30%);
+            stroke-width: 1.75;
+          }
+        }
+      }
+    }
+  }
 }

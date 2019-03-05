@@ -61,7 +61,8 @@ const appStateReducer = (state, { type, value }) =>
     timeframeInterval: intervalFromTimeframe(value)
   } :
   type === 'setChannelListType' ? { ...state, channelListType: value } :
-  type === 'setEmojis' ? { ...state, emojis: value } : state
+  type === 'setEmojis' ? { ...state, emojis: value } :
+  type === 'setExpand' ? { ...state, expand: value } : state
 
 const intervalFromTimeframe = (timeframe) => [
   timeframeToDateTime(timeframe).toJSDate(),
@@ -79,10 +80,11 @@ const App = ({ slack }) => {
     channelListType: DEFAULT_CHANNEL_LIST_TYPE,
     slack,
     emojis: {},
-    openMessageInSlack: openMessageInSlack(slack, setMessagePermalinkUrl)
+    openMessageInSlack: openMessageInSlack(slack, setMessagePermalinkUrl),
+    expand: false
   })
 
-  const { channelListType, timeframe, timeframeInterval } = appState
+  const { channelListType, timeframe, timeframeInterval, expand } = appState
 
   useEffect(() => {
     cached('emoji.list', 120, slack.getEmojiList)().then((emojis) =>
@@ -130,12 +132,13 @@ const App = ({ slack }) => {
           {...{
             channelListType,
             timeframe,
-            dispatch
+            dispatch,
+            expand
           }}
         />
         <State.Provider value={appState}>
           {channels.length > 0 && (
-            <Channels channels={channels} messages={messages} />
+            <Channels channels={channels} messages={messages} expand={expand} />
           )}
         </State.Provider>
       </div>
