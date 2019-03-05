@@ -14,15 +14,16 @@ const chartTickStep = (timeframe) =>
   timeframe === '1h' ? d3time.timeMinute.every(15) :
   timeframe === '1d' ? d3time.timeHour.every(6)    :
   timeframe === '7d' ? d3time.timeDay.every(1)     :
-  timeframe === '4w' ? d3time.timeWeek.every(1)    : null
+  timeframe === '4w' ? d3time.timeWeek.every(1)    :
+  timeframe === '12w' ? d3time.timeMonth.every(1)  :
+  timeframe === '24w' ? d3time.timeMonth.every(1)  : null
 
 const formatTick = (timeframe) => (v) =>
   // prettier-ignore
   DateTime.fromMillis(v).toFormat(
    timeframe === '1h' ? 'HH:mm' :
    timeframe === '1d' ? 'HH:mm' :
-   timeframe === '7d' ? 'ccc'   :
-   timeframe === '4w' ? 'MMM d' : null
+   timeframe === '7d' ? 'ccc'   : 'MMM d'
   )
 
 const findMessageClosestToTimestamp = (messages, timestamp) =>

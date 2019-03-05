@@ -14,7 +14,9 @@ const dataTickStep = (timeframe) =>
   timeframe === '1h' ? d3time.timeMinute.every(5)  :
   timeframe === '1d' ? d3time.timeMinute.every(30) :
   timeframe === '7d' ? d3time.timeHour.every(2)    :
-  timeframe === '4w' ? d3time.timeHour.every(12)   : null
+  timeframe === '4w' ? d3time.timeDay.every(1)     :
+  timeframe === '12w' ? d3time.timeDay.every(1)    :
+  timeframe === '24w' ? d3time.timeWeek.every(1)   : null
 
 const toActivityData = (ticks, data) =>
   ticks.map((tick, idx, all) => {
