@@ -1,3 +1,6 @@
+@import 'variables';
+@import 'breakpoints';
+
 .reaction {
   position: absolute;
   display: flex;
@@ -7,6 +10,12 @@
   box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.1);
   padding: 2px;
   border-radius: 4px;
+  user-select: none;
+  cursor: pointer;
+
+  @include media-breakpoint-up(sm) {
+    cursor: default;
+  }
 
   .custom-emoji {
     overflow: hidden;
