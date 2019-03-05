@@ -37,6 +37,38 @@ const getNormalizedReactions = _.pipe([
         )
 ])
 
+const isWithinN = (n, x, y) => Math.abs(x - y) <= n
+
+// const calculateReactionPositions = (minDistance, xScale, reactions) =>
+//   reactions.reduce((acc, reac) => {
+//     const foo = (left) => {
+//       const nearby = acc.find((r) => isWithinN(minDistance - 1, left, r.left))
+//       console.log(reac, left, nearby)
+//       left = nearby
+//         ? left - nearby.left < 0
+//           ? nearby.left - minDistance
+//           : nearby.left + minDistance
+//         : left
+//       if (nearby) return foo(left)
+//       else return left
+//     }
+//     const left = foo(xScale(reac.msg.tsMillis))
+//     return acc.concat({ ...reac, left })
+//   }, [])
+
+const MIN_REACTION_DISTANCE = 7
+const calculateReactionPositions = (minDistance, xScale, reactions) =>
+  reactions.reduce((acc, reac) => {
+    let left = xScale(reac.msg.tsMillis)
+    const nearby = acc.find((r) => isWithinN(minDistance, left, r.left))
+    left = nearby
+      ? left - nearby.left < 0
+        ? Math.max(left - minDistance, nearby.left - minDistance)
+        : Math.min(left + minDistance, nearby.left + minDistance)
+      : left
+    return acc.concat({ ...reac, left })
+  }, [])
+
 const getCoordsRelativeToRect = (domRect, event) => ({
   x: event.clientX - domRect.left,
   y: event.clientY - domRect.top
@@ -57,10 +89,10 @@ const ReactionOverlay = React.memo(
       messages
     ])
     const reactionsWithPositions = useMemo(
-      () => _.map((r) => ({ ...r, left: xScale(r.msg.tsMillis) }), reactions),
-      [reactions, xScale]
+      () =>
+        calculateReactionPositions(MIN_REACTION_DISTANCE, xScale, reactions),
+      [xScale, reactions]
     )
-
     const throttledMouseMove = useThrottle((ev) => {
       const overlayEl = overlayRef.current
       if (overlayEl === null) return
