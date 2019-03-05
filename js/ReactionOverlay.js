@@ -6,8 +6,7 @@ import Reaction from './Reaction'
 import { useThrottle } from 'use-lodash-debounce-throttle'
 
 const calcPushedLeftOffset = (reaction) =>
-  Math.sqrt(1 / Math.abs(reaction.offsetX)) *
-  15 *
+  Math.min(Math.sqrt(1 / Math.abs(reaction.offsetX)) * 15, 15) *
   (reaction.offsetX < 0 ? -1 : 1)
 
 const MAX_REACTION_COUNT = 20
