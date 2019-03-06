@@ -32,17 +32,18 @@ const toActivityData = (ticks, data) =>
   })
 
 const Channel = React.memo(({ id, name, messages = [] }) => {
-  const { timeframe, timeframeInterval, slack } = useContext(State)
+  const { timeframe, interval, slack } = useContext(State)
   const [animateEmoji, setAnimateEmoji] = useState(false)
-  const [timeframeFrom, timeframeTo] = timeframeInterval
   const dataTicks = useMemo(
-    () => makeTicks(timeframeFrom, timeframeTo, dataTickStep(timeframe)),
-    [timeframeFrom, timeframeTo, timeframe]
+    () => makeTicks(interval.start, interval.end, dataTickStep(timeframe)),
+    [interval, timeframe]
   )
   const messagesWithinTimeframe = useMemo(
     () =>
-      messages.filter((m) => m.date >= timeframeFrom && m.date <= timeframeTo),
-    [messages, timeframeFrom, timeframeTo]
+      messages.filter(
+        (m) => m.date >= interval.start && m.date <= interval.end
+      ),
+    [messages, interval]
   )
   const data = useMemo(
     () => toActivityData(dataTicks, messagesWithinTimeframe),
@@ -88,8 +89,6 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
               <Plot
                 margin={PLOT_MARGIN}
                 {...{
-                  timeframe,
-                  timeframeInterval,
                   height: height - 40,
                   width,
                   xDomain,

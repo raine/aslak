@@ -5,10 +5,8 @@ import Controls from './Controls'
 import NewWindow from 'react-new-window'
 import Channels from './Channels'
 import State from './Context'
-import { DateTime } from 'luxon'
-import { floorInterval } from './time'
 import cached from './cached'
-import { timeframeToDateTime } from './time'
+import { floorInterval, intervalFromTimeframe } from './time'
 
 import '../css/reboot.css'
 import '../css/main.scss'
@@ -58,16 +56,11 @@ const appStateReducer = (state, { type, value }) =>
   type === 'setTimeframe' ? {
     ...state,
     timeframe: value,
-    timeframeInterval: intervalFromTimeframe(value)
+    interval: intervalFromTimeframe(value)
   } :
   type === 'setChannelListType' ? { ...state, channelListType: value } :
   type === 'setEmojis' ? { ...state, emojis: value } :
   type === 'setExpand' ? { ...state, expand: value } : state
-
-const intervalFromTimeframe = (timeframe) => [
-  timeframeToDateTime(timeframe).toJSDate(),
-  new Date()
-]
 
 const App = ({ slack }) => {
   const [messagePermalinkUrl, setMessagePermalinkUrl] = useState(null)
@@ -76,7 +69,7 @@ const App = ({ slack }) => {
   const [messages, setMessages] = useState({})
   const [appState, dispatch] = useReducer(appStateReducer, {
     timeframe: DEFAULT_TIMEFRAME,
-    timeframeInterval: intervalFromTimeframe(DEFAULT_TIMEFRAME),
+    interval: intervalFromTimeframe(DEFAULT_TIMEFRAME),
     channelListType: DEFAULT_CHANNEL_LIST_TYPE,
     slack,
     emojis: {},
@@ -84,7 +77,7 @@ const App = ({ slack }) => {
     expand: false
   })
 
-  const { channelListType, timeframe, timeframeInterval, expand } = appState
+  const { channelListType, timeframe, interval, expand } = appState
 
   useEffect(() => {
     cached('emoji.list', 120, slack.getEmojiList)().then((emojis) =>
@@ -103,12 +96,7 @@ const App = ({ slack }) => {
       unbind(
         slack
           .streamChannelsHistoryCached(
-            {
-              oldest: floorInterval(
-                5,
-                DateTime.fromJSDate(timeframeInterval[0])
-              ).toSeconds()
-            },
+            { oldest: floorInterval(5, interval.start).toSeconds() },
             channels
           )
           .onValue(([channelId, messages]) => {

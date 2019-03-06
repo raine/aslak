@@ -41,8 +41,6 @@ const findDataPointForMessage = (data, msg) =>
 
 const Plot = React.memo(
   ({
-    timeframe,
-    timeframeInterval,
     width,
     height,
     margin,
@@ -51,15 +49,14 @@ const Plot = React.memo(
     data,
     messagesWithinTimeframe
   }) => {
-    const { openMessageInSlack } = useContext(State)
+    const { openMessageInSlack, timeframe, interval } = useContext(State)
     const [msgNearestToCursor, setMsgNearestToCursor] = useState(null)
-    const [timeframeFrom, timeframeTo] = timeframeInterval
     const innerPlotWidth = width - margin.left - margin.right
     const xRange = [0, innerPlotWidth]
     const xScale = scaleLinear(xDomain, xRange)
     const chartTicks = useMemo(
-      () => makeTicks(timeframeFrom, timeframeTo, chartTickStep(timeframe)),
-      [timeframeFrom, timeframeTo]
+      () => makeTicks(interval.start, interval.end, chartTickStep(timeframe)),
+      [interval]
     )
 
     // Find data point matching msgNearestToCursor and override the color
