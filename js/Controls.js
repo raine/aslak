@@ -7,9 +7,9 @@ const TIMEFRAMES = [
   { key: '1h', text: '1h' },
   { key: '1d', text: '1d' },
   { key: '7d', text: '7d' },
-  { key: '4w', text: '1m' },
-  { key: '12w', text: '3m' },
-  { key: '24w', text: '6m' }
+  { key: '1m', text: '1m' },
+  { key: '3m', text: '3m' },
+  { key: '6m', text: '6m' }
 ]
 
 const CHANNEL_SELECTION = [

@@ -14,9 +14,9 @@ const chartTickStep = (timeframe) =>
   timeframe === '1h' ? d3time.timeMinute.every(15) :
   timeframe === '1d' ? d3time.timeHour.every(6)    :
   timeframe === '7d' ? d3time.timeDay.every(1)     :
-  timeframe === '4w' ? d3time.timeWeek.every(1)    :
-  timeframe === '12w' ? d3time.timeMonth.every(1)  :
-  timeframe === '24w' ? d3time.timeMonth.every(1)  : null
+  timeframe === '1m' ? d3time.timeWeek.every(1)    :
+  timeframe === '3m' ? d3time.timeMonth.every(1)   :
+  timeframe === '6m' ? d3time.timeMonth.every(1)   : null
 
 const formatTick = (timeframe) => (v) =>
   // prettier-ignore
