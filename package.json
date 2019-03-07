@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "parcel serve index.html",
-    "build": "rm -rf dist && parcel build --no-source-maps --public-url . index.html",
+    "build": "rm -rf dist && parcel build --experimental-scope-hoisting --no-source-maps --public-url . index.html",
     "test:lint": "eslint js/",
     "test": "yarn test:lint"
   },
