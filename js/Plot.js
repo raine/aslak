@@ -1,4 +1,6 @@
-import { XYPlot, VerticalBarSeries, XAxis } from 'react-vis'
+import XYPlot from 'react-vis/es/plot/xy-plot'
+import VerticalBarSeries from 'react-vis/es/plot/series/vertical-bar-series'
+import XAxis from 'react-vis/es/plot/axis/x-axis'
 import classNames from 'classnames'
 import { scaleLinear } from 'd3-scale'
 import * as d3time from 'd3-time'
