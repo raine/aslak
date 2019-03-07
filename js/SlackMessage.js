@@ -22,7 +22,7 @@ const SlackMessageImage = React.memo((file) => {
       }}
     >
       <img
-        src={file.thumb_720}
+        src={file.thumb_720 || file.thumb_480 || file.thumb_360}
         width={file.thumb_360_w}
         height={file.thumb_360_h}
       />
