@@ -1,4 +1,5 @@
-import { DateTime, Interval } from 'luxon'
+import DateTime from 'luxon/src/datetime'
+import Interval from 'luxon/src/interval'
 
 const timeframeToDurationObject = (timeframe) => {
   const [, digit, char] = timeframe.match(/^(\d+)([a-z])$/)

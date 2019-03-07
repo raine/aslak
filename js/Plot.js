@@ -5,7 +5,7 @@ import classNames from 'classnames'
 import { scaleLinear } from 'd3-scale'
 import * as d3time from 'd3-time'
 import React, { useMemo, useState, useCallback, useContext } from 'react'
-import { DateTime } from 'luxon'
+import DateTime from 'luxon/src/datetime'
 import makeTicks from './make-ticks'
 import State from './Context'
 
