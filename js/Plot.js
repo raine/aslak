@@ -1,6 +1,7 @@
 import XYPlot from 'react-vis/es/plot/xy-plot'
 import VerticalBarSeries from 'react-vis/es/plot/series/vertical-bar-series'
 import XAxis from 'react-vis/es/plot/axis/x-axis'
+import { getAttributeScale } from 'react-vis/es/utils/scales-utils'
 import classNames from 'classnames'
 import { scaleLinear } from 'd3-scale'
 import * as d3time from 'd3-time'
@@ -55,7 +56,17 @@ const Plot = React.memo(
     const [msgNearestToCursor, setMsgNearestToCursor] = useState(null)
     const innerPlotWidth = width - margin.left - margin.right
     const xRange = [0, innerPlotWidth]
-    const xScale = scaleLinear(xDomain, xRange)
+    const xScale = getAttributeScale(
+      {
+        _allData: [data],
+        _adjustWhat: [0],
+        _adjustBy: ['x'],
+        xType: 'time',
+        xRange,
+        xDomain
+      },
+      'x'
+    )
     const chartTicks = useMemo(
       () => makeTicks(interval.start, interval.end, chartTickStep(timeframe)),
       [interval]
@@ -78,10 +89,10 @@ const Plot = React.memo(
       const el = ev.currentTarget
       const elDomRect = el.getBoundingClientRect()
       const mouseX = ev.clientX - elDomRect.left - margin.left
-      const mouseXTimestamp = xScale.invert(mouseX)
+      const mouseDate = xScale.invert(mouseX)
       const msg = findMessageClosestToTimestamp(
         messagesWithinTimeframe,
-        mouseXTimestamp
+        mouseDate.getTime()
       )
       setMsgNearestToCursor(
         msg &&
@@ -101,6 +112,7 @@ const Plot = React.memo(
         animation={false}
         xDomain={xDomain}
         yDomain={yDomain}
+        xType="time"
         colorType="literal"
         onMouseMove={onPlotMouseMove}
         onMouseLeave={() => {
