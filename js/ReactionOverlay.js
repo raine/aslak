@@ -1,5 +1,4 @@
 import React, { useMemo, useRef, useState } from 'react'
-import { scaleLinear } from 'd3-scale'
 import '../css/ReactionOverlay.scss'
 import * as _ from 'lodash/fp'
 import Reaction from './Reaction'
@@ -44,19 +43,17 @@ const getCoordsRelativeToRect = (domRect, event) => ({
 const X_THRESHOLD = 12
 
 const ReactionOverlay = React.memo(
-  ({ parentWidth, plotMargin, xDomain, messages, animateEmoji }) => {
+  ({ parentWidth, plotMargin, xScale, messages, animateEmoji }) => {
     const width = parentWidth - plotMargin.left - plotMargin.right
     const left = plotMargin.left
     const overlayRef = useRef(null)
-    const xRange = [0, width]
-    const xScale = scaleLinear(xDomain, xRange)
     const [reactionNearMouse, setReactionNearMouse] = useState(null)
     const [nearbyReactions, setNearbyReactions] = useState({})
     const reactions = useMemo(() => getNormalizedReactions(messages), [
       messages
     ])
     const reactionsWithPositions = useMemo(
-      () => _.map((r) => ({ ...r, left: xScale(r.msg.tsMillis) }), reactions),
+      () => _.map((r) => ({ ...r, left: xScale(r.msg.date) }), reactions),
       [reactions, xScale]
     )
 

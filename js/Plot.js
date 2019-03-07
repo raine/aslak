@@ -1,9 +1,7 @@
 import XYPlot from 'react-vis/es/plot/xy-plot'
 import VerticalBarSeries from 'react-vis/es/plot/series/vertical-bar-series'
 import XAxis from 'react-vis/es/plot/axis/x-axis'
-import { getAttributeScale } from 'react-vis/es/utils/scales-utils'
 import classNames from 'classnames'
-import { scaleLinear } from 'd3-scale'
 import * as d3time from 'd3-time'
 import React, { useMemo, useState, useCallback, useContext } from 'react'
 import { DateTime } from 'luxon'
@@ -49,24 +47,12 @@ const Plot = React.memo(
     margin,
     xDomain,
     yDomain,
+    xScale,
     data,
     messagesWithinTimeframe
   }) => {
     const { openMessageInSlack, timeframe, interval } = useContext(State)
     const [msgNearestToCursor, setMsgNearestToCursor] = useState(null)
-    const innerPlotWidth = width - margin.left - margin.right
-    const xRange = [0, innerPlotWidth]
-    const xScale = getAttributeScale(
-      {
-        _allData: [data],
-        _adjustWhat: [0],
-        _adjustBy: ['x'],
-        xType: 'time',
-        xRange,
-        xDomain
-      },
-      'x'
-    )
     const chartTicks = useMemo(
       () => makeTicks(interval.start, interval.end, chartTickStep(timeframe)),
       [interval]

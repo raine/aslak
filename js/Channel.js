@@ -1,4 +1,5 @@
 import React, { useContext, useMemo, useState, Fragment } from 'react'
+import { getAttributeScale } from 'react-vis/es/utils/scales-utils'
 import * as d3time from 'd3-time'
 import * as _ from 'lodash/fp'
 import State from './Context'
@@ -34,6 +35,8 @@ const toActivityData = (ticks, data) =>
 const Channel = React.memo(({ id, name, messages = [] }) => {
   const { timeframe, interval, slack } = useContext(State)
   const [animateEmoji, setAnimateEmoji] = useState(false)
+  const [dimensions, setDimensions] = useState({})
+  const { width } = dimensions
   const dataTicks = useMemo(
     () => makeTicks(interval.start, interval.end, dataTickStep(timeframe)),
     [interval, timeframe]
@@ -52,6 +55,23 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
   const yMax = _.maxBy((obj) => obj.y, data).y
   const yDomain = [0, yMax === 0 ? 1 : yMax]
   const xDomain = [_.head(data).x, _.last(data).x]
+  const innerPlotWidth = width - PLOT_MARGIN.left - PLOT_MARGIN.right
+  const xRange = [0, innerPlotWidth]
+  const xScale = useMemo(
+    () =>
+      getAttributeScale(
+        {
+          _allData: [data],
+          _adjustWhat: [0],
+          _adjustBy: ['x'],
+          xType: 'time',
+          xRange,
+          xDomain
+        },
+        'x'
+      ),
+    [data, xRange, xDomain]
+  )
 
   return (
     <div
@@ -76,13 +96,13 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
         </span>
       </div>
       <div className="plot-container">
-        <AutoSizer>
+        <AutoSizer onResize={setDimensions}>
           {({ height, width }) => (
             <Fragment>
               <ReactionOverlay
                 parentWidth={width}
                 plotMargin={PLOT_MARGIN}
-                xDomain={xDomain}
+                xScale={xScale}
                 messages={messagesWithinTimeframe}
                 animateEmoji={animateEmoji}
               />
@@ -93,6 +113,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
                   width,
                   xDomain,
                   yDomain,
+                  xScale,
                   data,
                   messagesWithinTimeframe
                 }}
