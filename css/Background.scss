@@ -15,6 +15,7 @@
   transform: skewY(-12deg) translate3d(0, 0, 0);;
   z-index: -1;
   font-weight: 600;
+  width: 103vw;
 
   span:before {
     content: attr(data-text);
