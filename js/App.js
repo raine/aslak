@@ -1,12 +1,12 @@
-import React, { Fragment, useState, useEffect, useReducer } from 'react'
+import React, { Fragment, useState, useReducer, useMemo } from 'react'
 import Background from './Background'
-import * as _ from 'lodash/fp'
-import Controls from './Controls'
 import NewWindow from 'react-new-window'
-import Channels from './Channels'
+import ChannelsView from './ChannelsView'
+import LoginView from './LoginView'
 import State from './Context'
-import cached from './cached'
-import { floorInterval, intervalFromTimeframe } from './time'
+import * as slack from './slack'
+import { intervalFromTimeframe } from './time'
+import channelNames from '../channel-names.json'
 
 import '../css/reboot.css'
 import '../css/main.scss'
@@ -15,31 +15,15 @@ import 'react-vis/dist/style.css'
 
 const DEFAULT_TIMEFRAME = '7d'
 const DEFAULT_CHANNEL_LIST_TYPE = 'MEMBER_OF'
-const DEFAULT_MESSAGES = []
 
-const updateChannelMessages = (id, channelMessages) => (messages) => ({
-  ...messages,
-  [id]: _.uniqBy(
-    (m) => m.ts,
-    (messages[id] || DEFAULT_MESSAGES).concat(channelMessages)
-  )
-})
-
-const unbind = (k) => k.offValue.bind(k)
-
-const openMessageInSlack = (slack, setMessagePermalinkUrl) => ({
+const openMessageInSlack = (slackClient, setMessagePermalinkUrl) => ({
   channelId,
   ts
 }) => {
-  slack.getMessagePermaLink(channelId, ts).then(({ permalink }) => {
+  slackClient.getMessagePermaLink(channelId, ts).then(({ permalink }) => {
     setMessagePermalinkUrl(permalink)
   })
 }
-
-const getChannelsByListType = (type, allChannels) =>
-  // prettier-ignore
-  type === 'POPULAR'   ? allChannels.slice(0, 32) :
-  type === 'MEMBER_OF' ? allChannels.filter((c) => c.is_member) : []
 
 const SlackMessagePopup = ({ messagePermalinkUrl, onUnload }) => (
   <NewWindow
@@ -62,7 +46,11 @@ const appStateReducer = (state, { type, value }) =>
   type === 'setEmojis' ? { ...state, emojis: value } :
   type === 'setExpand' ? { ...state, expand: value } : state
 
-const App = ({ slack }) => {
+const App = ({ slackToken }) => {
+  const slackClient = useMemo(
+    () => (slackToken ? slack.init(slackToken) : null),
+    []
+  )
   const [messagePermalinkUrl, setMessagePermalinkUrl] = useState(null)
   const [allChannels, setAllChannels] = useState([])
   const [channels, setChannels] = useState([])
@@ -71,40 +59,11 @@ const App = ({ slack }) => {
     timeframe: DEFAULT_TIMEFRAME,
     interval: intervalFromTimeframe(DEFAULT_TIMEFRAME),
     channelListType: DEFAULT_CHANNEL_LIST_TYPE,
-    slack,
+    slackClient,
     emojis: {},
-    openMessageInSlack: openMessageInSlack(slack, setMessagePermalinkUrl),
+    openMessageInSlack: openMessageInSlack(slackClient, setMessagePermalinkUrl),
     expand: false
   })
-
-  const { channelListType, timeframe, interval, expand } = appState
-
-  useEffect(() => {
-    cached('emoji.list', 120, slack.getEmojiList)().then((emojis) =>
-      dispatch({ type: 'setEmojis', value: emojis })
-    )
-
-    cached('channels', 120, slack.getChannels)().then(setAllChannels)
-  }, [])
-
-  useEffect(() => {
-    setChannels(getChannelsByListType(channelListType, allChannels))
-  }, [channelListType, allChannels])
-
-  useEffect(
-    () =>
-      unbind(
-        slack
-          .streamChannelsHistoryCached(
-            { oldest: floorInterval(5, interval.start).toSeconds() },
-            channels
-          )
-          .onValue(([channelId, messages]) => {
-            setMessages(updateChannelMessages(channelId, messages))
-          })
-      ),
-    [channels, timeframe]
-  )
 
   return (
     <Fragment>
@@ -114,20 +73,26 @@ const App = ({ slack }) => {
           onUnload={() => setMessagePermalinkUrl(null)}
         />
       )}
-      <Background channels={allChannels} />
+      <Background
+        channels={slackClient ? allChannels.map((c) => c.name) : channelNames}
+      />
       <div className="app-container">
-        <Controls
-          {...{
-            channelListType,
-            timeframe,
-            dispatch,
-            expand
-          }}
-        />
         <State.Provider value={appState}>
-          {channels.length > 0 && (
-            <Channels channels={channels} messages={messages} expand={expand} />
-          )}
+          {slackClient ? (
+            <ChannelsView
+              {...{
+                dispatch,
+                channels,
+                messages,
+                slackClient,
+                allChannels,
+                setAllChannels,
+                setChannels,
+                setMessages
+              }}
+            />
+          ) : null}
+          {!slackClient ? <LoginView /> : null}
         </State.Provider>
       </div>
     </Fragment>

@@ -33,7 +33,7 @@ const toActivityData = (ticks, data) =>
   })
 
 const Channel = React.memo(({ id, name, messages = [] }) => {
-  const { timeframe, interval, slack } = useContext(State)
+  const { timeframe, interval, slackClient } = useContext(State)
   const [animateEmoji, setAnimateEmoji] = useState(false)
   const [dimensions, setDimensions] = useState({})
   const { width } = dimensions
@@ -86,7 +86,10 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
       <div className="header">
         <a
           className="name"
-          href={slack.formatChannelLink(slack.getCachedTeamId(), id)}
+          href={slackClient.formatChannelLink(
+            slackClient.getCachedTeamId(),
+            id
+          )}
         >
           #{name}
         </a>

@@ -9,13 +9,38 @@ import pMemoize from 'promise-memoize'
 const REDIRECT_URI = `${location.protocol}//${location.host}${
   location.pathname
 }`
-const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID
-const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET
+
+const SCOPES = ['channels:history', 'channels:read', 'emoji:read', 'users:read']
+const LS_ACCESS_TOKEN = 'slack_access_token'
+const LS_TEAM_ID = 'slack_team_id' // TODO: not necessary with team_id is an env variable
+export const CLIENT_ID = process.env.SLACK_CLIENT_ID
+export const TEAM_ID = process.env.SLACK_TEAM_ID
+const CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET
 const X_WWW_FORM_URLENCODED = {
   'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
 }
 
-export const login = () => initSlack(SLACK_CLIENT_ID, SLACK_CLIENT_SECRET)
+export const getCachedToken = () => localStorage.getItem(LS_ACCESS_TOKEN)
+
+export const getTokenWithCode = () => {
+  const { search } = window.location
+  const query = qs.parse(search.replace(/^\?/, ''))
+  return query.code
+    ? oauthAccess(CLIENT_ID, CLIENT_SECRET, query.code)
+        .then((res) => {
+          const baseUrl = window.location.href.replace(/\?.*/, '')
+          localStorage.setItem(LS_ACCESS_TOKEN, res.access_token)
+          localStorage.setItem(LS_TEAM_ID, res.team_id)
+          window.history.replaceState(
+            null,
+            document.title,
+            baseUrl + (query.state ? atob(query.state) : '')
+          )
+          return res.access_token
+        })
+        .catch(console.error)
+    : Promise.resolve(null)
+}
 
 const DEFAULT_TTL = 5 * 60 * 1000
 
@@ -102,12 +127,13 @@ const getAllStreamed = (get) => (method, params, property) =>
     recur(get(method, params))
   })
 
-const formatOauthUri = (clientId) =>
+export const formatOauthAuthorizeUri = (clientId, teamId) =>
   'https://slack.com/oauth/authorize?' +
   qs.stringify({
     client_id: clientId,
-    scope: 'channels:history channels:read emoji:read users:read',
-    redirect_uri: REDIRECT_URI
+    scope: SCOPES.join(' '),
+    redirect_uri: REDIRECT_URI,
+    team: teamId
   })
 
 const oauthAccess = (clientId, clientSecret, code) =>
@@ -120,31 +146,6 @@ const oauthAccess = (clientId, clientSecret, code) =>
         redirect_uri: REDIRECT_URI
       })
   )
-
-const initSlack = (clientId, clientSecret) => {
-  const { search } = window.location
-  const query = qs.parse(search.replace(/^\?/, ''))
-  const baseUrl = window.location.href.replace(/\?.*/, '')
-
-  if (query.code) {
-    return oauthAccess(clientId, clientSecret, query.code)
-      .then((res) => {
-        localStorage.setItem('slack_access_token', res.access_token)
-        localStorage.setItem('slack_team_id', res.team_id)
-        window.history.replaceState(
-          null,
-          document.title,
-          baseUrl + (query.state ? atob(query.state) : '')
-        )
-        return res.access_token
-      })
-      .catch(console.error)
-  } else if (!localStorage.getItem('slack_access_token')) {
-    window.location.replace(formatOauthUri(clientId))
-  }
-
-  return Promise.resolve(localStorage.getItem('slack_access_token'))
-}
 
 const getChannels = (getAll) => () =>
   getAll(
@@ -195,7 +196,7 @@ const getMessagePermaLink = (get) => (channel, message_ts) =>
 
 const getEmojiList = (get) => () => get('emoji.list').then(_.get('body.emoji'))
 
-const getCachedTeamId = () => localStorage.getItem('slack_team_id')
+const getCachedTeamId = () => localStorage.getItem(LS_TEAM_ID)
 
 const formatChannelLink = (teamId, channelId) =>
   `slack://channel?id=${channelId}&team=${teamId}`

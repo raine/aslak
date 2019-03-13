@@ -11,10 +11,23 @@ const pickFromArray = (arr, str) => {
   return arr[((i % len) + len) % len]
 }
 
+const takeRepeat = (n, xs) => {
+  if (!xs.length) return []
+  let i = 0
+  let j = 0
+  const arr = []
+  while (i < n) {
+    arr.push(xs[j])
+    j = j === xs.length - 1 ? 0 : j + 1
+    i = i + 1
+  }
+  return arr
+}
+
 const Background = React.memo(
-  ({ channels: allChannels }) => {
-    const channels = allChannels.slice(0, 75)
-    const transitions = useTransition(channels, (c) => c.id, {
+  ({ channels }) => {
+    channels = takeRepeat(80, channels)
+    const transitions = useTransition(channels, (c, idx) => idx, {
       from: { opacity: 0 },
       enter: { opacity: 1.0 },
       trail: 15
@@ -26,10 +39,10 @@ const Background = React.memo(
           <animated.span
             key={key}
             style={{
-              fontWeight: pickFromArray(WEIGHTS, item.id),
+              fontWeight: pickFromArray(WEIGHTS, item),
               ...props
             }}
-            data-text={`#${item.name} `}
+            data-text={`#${item} `}
           />
         ))}
       </div>

@@ -35,7 +35,7 @@ SlackMessageImage.displayName = 'SlackMessageImage'
 const SlackMessage = React.memo(
   ({ isVisible, msg, scheduleUpdate, onFadeOutDone }) => {
     const { text, user: userId, datetime, files = [] } = msg
-    const { slack, openMessageInSlack } = useContext(State)
+    const { slackClient, openMessageInSlack } = useContext(State)
     const [user, setUser] = useState(null)
     const textHtml = useMemo(
       () => ({ __html: xss(slackdown.parse(text).replace(/\n/g, '<br />')) }),
@@ -47,7 +47,7 @@ const SlackMessage = React.memo(
     }, [user])
 
     useEffect(() => {
-      slack.getUserInfo(userId).then(setUser)
+      slackClient.getUserInfo(userId).then(setUser)
     }, [setUser])
 
     const props = useSpring({

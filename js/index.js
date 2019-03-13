@@ -3,9 +3,11 @@ import React from 'react'
 import { render } from 'react-dom'
 import App from './App'
 
-slack.login().then((token) => {
-  if (!token) return
-  render(<App slack={slack.init(token)} />, document.getElementById('root'))
+slack.getTokenWithCode().then((token) => {
+  render(
+    <App slackToken={token || slack.getCachedToken()} />,
+    document.getElementById('root')
+  )
 })
 
 // // Disable HMR
