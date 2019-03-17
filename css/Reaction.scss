@@ -13,6 +13,18 @@
   user-select: none;
   cursor: pointer;
 
+  .new-circle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    top: -2px;
+    right: -2px;
+    background-color: #48ce4d;
+    border-radius: 50%;
+    box-shadow: inset -1px -1px 0px darken(#48ce4d, 5%);
+    opacity: 0.8;
+  }
+
   @include media-breakpoint-up(sm) {
     cursor: default;
   }

@@ -1,4 +1,10 @@
-import React, { useContext, useMemo, useState, Fragment } from 'react'
+import React, {
+  useContext,
+  useMemo,
+  useState,
+  Fragment,
+  useEffect
+} from 'react'
 import { getAttributeScale } from 'react-vis/es/utils/scales-utils'
 import * as d3time from 'd3-time'
 import * as _ from 'lodash/fp'
@@ -8,6 +14,7 @@ import ReactionOverlay from './ReactionOverlay'
 import Plot from './Plot'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import '../css/Channel.scss'
+import { initChannelFirstSeen } from './idb'
 
 const PLOT_MARGIN = { left: 10, right: 10, top: 10, bottom: 35 }
 const dataTickStep = (timeframe) =>
@@ -72,6 +79,10 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
       ),
     [data, xRange, xDomain]
   )
+
+  useEffect(() => {
+    initChannelFirstSeen(id)
+  }, [])
 
   return (
     <div

@@ -1,10 +1,11 @@
-import React, { useRef, useState, useContext } from 'react'
+import React, { useRef, useState, useContext, useEffect } from 'react'
 import { Manager, Reference, Popper } from 'react-popper'
 import '../css/Reaction.scss'
 import SlackMessage from './SlackMessage'
 import emojiShortcodeToChar from '../emojis.json'
 import { useSpring, animated } from 'react-spring'
 import State from './Context'
+import { getChannelFirstSeen, getMsgSeen, setMsgSeen } from './idb'
 
 const fixEmojiName = (name) => name.replace(/::skin-tone-\d/, '')
 
@@ -12,6 +13,7 @@ const Reaction = React.memo(
   ({ name, count, left: leftPos, promote, msg, animateEmoji = false }) => {
     const mouseEnterTimeoutRef = useRef(null)
     const mouseLeaveTimeoutRef = useRef(null)
+    const [showNewIndicator, setShowNewIndicator] = useState(false)
     const [showPopper, setShowPopper] = useState(false)
     const [showSlackMessage, setShowSlackMessage] = useState(false)
     const { emojis } = useContext(State)
@@ -20,10 +22,10 @@ const Reaction = React.memo(
     const staticEmojiUrl = emojiUrl
       ? 'https://slack-imgs.com/?c=1&o1=gu&url=' + encodeURIComponent(emojiUrl)
       : null
-
     const onMouseEnter = () => {
       clearTimeout(mouseLeaveTimeoutRef.current)
       mouseEnterTimeoutRef.current = setTimeout(() => {
+        setShowNewIndicator(false)
         setShowPopper(true)
         setShowSlackMessage(true)
       }, 300)
@@ -45,6 +47,19 @@ const Reaction = React.memo(
       },
       config: { mass: 0.5, tension: 250, friction: 20 }
     })
+
+    useEffect(() => {
+      Promise.all([
+        getChannelFirstSeen(msg.channelId),
+        getMsgSeen(msg.ts)
+      ]).then(([channelFirstSeen, seen]) => {
+        if (msg.tsMillis >= channelFirstSeen) {
+          setShowNewIndicator(!seen)
+          setMsgSeen(msg.ts)
+        }
+      })
+    }, [])
+
     return (
       <React.Fragment>
         <Manager>
@@ -63,6 +78,7 @@ const Reaction = React.memo(
                   transform: scale.interpolate((scale) => `scale(${scale})`)
                 }}
               >
+                {showNewIndicator && <div className="new-circle" />}
                 {emojiUrl ? (
                   <div
                     className="custom-emoji"
