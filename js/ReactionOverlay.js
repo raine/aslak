@@ -35,6 +35,9 @@ const getNormalizedReactions = _.pipe([
         )
 ])
 
+const getReactionPositions = (xScale, reactions) =>
+  reactions.map((r) => ({ ...r, left: xScale(r.msg.date) }))
+
 const getCoordsRelativeToRect = (domRect, event) => ({
   x: event.clientX - domRect.left,
   y: event.clientY - domRect.top
@@ -53,10 +56,9 @@ const ReactionOverlay = React.memo(
       messages
     ])
     const reactionsWithPositions = useMemo(
-      () => _.map((r) => ({ ...r, left: xScale(r.msg.date) }), reactions),
+      () => getReactionPositions(xScale, reactions),
       [reactions, xScale]
     )
-
     const throttledMouseMove = useThrottle((ev) => {
       const overlayEl = overlayRef.current
       if (overlayEl === null) return
