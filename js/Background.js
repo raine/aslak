@@ -26,7 +26,7 @@ const takeRepeat = (n, xs) => {
 
 const Background = React.memo(
   ({ channels }) => {
-    channels = takeRepeat(80, channels)
+    channels = takeRepeat(90, channels)
     const transitions = useTransition(channels, (c, idx) => idx, {
       from: { opacity: 0 },
       enter: { opacity: 1.0 },

@@ -9,7 +9,6 @@
   letter-spacing: -0.3rem;
   position: fixed;
   top: -2em;
-  left: -0em;
   text-shadow: 4px 4px 1px hsl(0, 0%, 95%);
   color: hsla(0, 0%, 98%, 1);
   transform: skewY(-12deg) translate3d(0, 0, 0);;
@@ -22,6 +21,6 @@
   }
 
   @include media-breakpoint-up(xl) {
-    font-size: 6vw;
+    font-size: calc(4.5em + 2.5vw);
   }
 }
