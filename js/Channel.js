@@ -39,6 +39,17 @@ const toActivityData = (ticks, data) =>
     }
   })
 
+const pluralize = (noun, count) => noun + (count !== 1 ? 's' : '')
+const MessageCount = React.memo(({ messages, users }) => (
+  <span className="message-count">
+    {`${messages.length} ${pluralize('message', messages.length)} from ${
+      users.size
+    } ${pluralize('user', users.size)}`}
+  </span>
+))
+
+MessageCount.displayName = 'MessageCount'
+
 const Channel = React.memo(({ id, name, messages = [] }) => {
   const { timeframe, interval, slackClient } = useContext(State)
   const [animateEmoji, setAnimateEmoji] = useState(false)
@@ -54,6 +65,14 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
         (m) => m.date >= interval.start && m.date <= interval.end
       ),
     [messages, interval]
+  )
+  const activeUsersWithinTimeframe = useMemo(
+    () =>
+      messagesWithinTimeframe.reduce(
+        (set, msg) => set.add(msg.user),
+        new Set()
+      ),
+    [messagesWithinTimeframe]
   )
   const data = useMemo(
     () => toActivityData(dataTicks, messagesWithinTimeframe),
@@ -104,10 +123,12 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
         >
           #{name}
         </a>
-        <span className="message-count">
-          {messagesWithinTimeframe.length} message
-          {messagesWithinTimeframe.length !== 1 ? 's' : ''}
-        </span>
+        {messagesWithinTimeframe.length > 0 ? (
+          <MessageCount
+            messages={messagesWithinTimeframe}
+            users={activeUsersWithinTimeframe}
+          />
+        ) : null}
       </div>
       <div className="plot-container">
         <AutoSizer onResize={setDimensions}>
