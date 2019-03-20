@@ -59,36 +59,40 @@ const ReactionOverlay = React.memo(
       () => getReactionPositions(xScale, reactions),
       [reactions, xScale]
     )
-    const throttledMouseMove = useThrottle((ev) => {
-      const overlayEl = overlayRef.current
-      if (overlayEl === null) return
-      const clientRect = overlayEl.getBoundingClientRect()
-      const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
-      // Restrict vertical area on which mouse move can trigger update to
-      // reactions. Fixes this event from firing after mouse leave event and
-      // not clearing promoted reaction state.
-      if (mouseY < 0 || mouseY > 30) return
-      const reaction = _.minBy(
-        (r) => Math.abs(r.left - mouseX),
-        reactionsWithPositions
-      )
-      const isNearMouse =
-        reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
+    const throttledMouseMove = useThrottle(
+      (ev) => {
+        const overlayEl = overlayRef.current
+        if (overlayEl === null) return
+        const clientRect = overlayEl.getBoundingClientRect()
+        const { x: mouseX, y: mouseY } = getCoordsRelativeToRect(clientRect, ev)
+        // Restrict vertical area on which mouse move can trigger update to
+        // reactions. Fixes this event from firing after mouse leave event and
+        // not clearing promoted reaction state.
+        if (mouseY < 0 || mouseY > 30) return
+        const reaction = _.minBy(
+          (r) => Math.abs(r.left - mouseX),
+          reactionsWithPositions
+        )
+        const isNearMouse =
+          reaction && Math.abs(reaction.left - mouseX) < X_THRESHOLD
 
-      setReactionNearMouse(isNearMouse ? reaction : null)
-      setNearbyReactions(
-        isNearMouse
-          ? reactionsWithPositions.reduce((acc, r) => {
-              if (r.msg.ts === reaction.msg.ts) return acc
-              const offsetX = mouseX - r.left
-              return {
-                ...acc,
-                ...(Math.abs(offsetX) < 15 ? { [r.msg.ts]: { offsetX } } : {})
-              }
-            }, {})
-          : {}
-      )
-    }, 50, { trailing: false })
+        setReactionNearMouse(isNearMouse ? reaction : null)
+        setNearbyReactions(
+          isNearMouse
+            ? reactionsWithPositions.reduce((acc, r) => {
+                if (r.msg.ts === reaction.msg.ts) return acc
+                const offsetX = mouseX - r.left
+                return {
+                  ...acc,
+                  ...(Math.abs(offsetX) < 15 ? { [r.msg.ts]: { offsetX } } : {})
+                }
+              }, {})
+            : {}
+        )
+      },
+      50,
+      { trailing: false }
+    )
 
     return (
       <div
