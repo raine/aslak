@@ -88,7 +88,7 @@ const ReactionOverlay = React.memo(
             }, {})
           : {}
       )
-    }, 50)
+    }, 50, { trailing: false })
 
     return (
       <div
