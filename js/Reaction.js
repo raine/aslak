@@ -9,6 +9,18 @@ import { getChannelFirstSeen, getMsgSeen, setMsgSeen } from './idb'
 
 const fixEmojiName = (name) => name.replace(/::skin-tone-\d/, '')
 
+const NewCircle = React.memo(({ show }) => (
+  <animated.div
+    style={useSpring({
+      from: { opacity: 0 },
+      to: { opacity: show ? 1 : 0 }
+    })}
+    className="new-circle"
+  />
+))
+
+NewCircle.displayName = 'NewCircle'
+
 const Reaction = React.memo(
   ({ name, count, left: leftPos, promote, msg, animateEmoji = false }) => {
     const mouseEnterTimeoutRef = useRef(null)
@@ -78,7 +90,7 @@ const Reaction = React.memo(
                   transform: scale.interpolate((scale) => `scale(${scale})`)
                 }}
               >
-                {showNewIndicator && <div className="new-circle" />}
+                <NewCircle show={showNewIndicator} />
                 {emojiUrl ? (
                   <div
                     className="custom-emoji"
