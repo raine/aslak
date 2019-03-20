@@ -52,10 +52,15 @@ const SlackMessage = React.memo(
 
     const props = useSpring({
       from: { opacity: 0 },
-      to: (next) =>
-        next({ opacity: isVisible && user ? 1 : 0 }).then(() => {
-          if (user && !isVisible) onFadeOutDone()
-        }),
+      to: (next) => {
+        const p = next({ opacity: isVisible && user ? 1 : 0 })
+        return (
+          p &&
+          p.then(() => {
+            if (user && !isVisible) onFadeOutDone()
+          })
+        )
+      },
       config: { duration: 125 }
     })
 
