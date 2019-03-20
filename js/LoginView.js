@@ -10,7 +10,10 @@ const LoginView = React.memo(() => (
         To get started, the dashboard requires permissions to access some
         content in your Slack workspace.
       </p>
-      <p>Any data fetched from the Slack API does not leave the browser.</p>
+      <p>
+        This app runs purely in your browser. Any data fetched from the Slack
+        API stays here.
+      </p>
       <div className="sign-in-with-slack">
         <a href={slack.formatOauthAuthorizeUri(slack.CLIENT_ID, slack.TEAM_ID)}>
           <img
