@@ -13,18 +13,18 @@ import xss from 'xss'
 import '../css/SlackMessage.scss'
 
 const SlackMessageImage = React.memo((file) => {
+  const isMobile = document.body.clientWidth <= 450
+  let width = file.thumb_360_w
+  let height = file.thumb_360_h
+  const landscape = width > height
+  width = isMobile && landscape ? 0.8 * width : width
+  height = isMobile && landscape ? 0.8 * height : height
   return (
-    <div
-      className="message-image"
-      style={{
-        width: file.thumb_360_w,
-        height: file.thumb_360_h
-      }}
-    >
+    <div className="message-image" style={{ width, height }}>
       <img
         src={file.thumb_720 || file.thumb_480 || file.thumb_360}
-        width={file.thumb_360_w}
-        height={file.thumb_360_h}
+        width={width}
+        height={height}
       />
     </div>
   )
