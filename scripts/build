@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+rm -rf dist
+CSP_CONTENT=$(node ./scripts/csp.js) \
+  parcel build --experimental-scope-hoisting --no-source-maps --public-url . index.html

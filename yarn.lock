@@ -1585,6 +1585,11 @@ constants-browserify@^1.0.0:
   resolved "https://registry.yarnpkg.com/constants-browserify/-/constants-browserify-1.0.0.tgz#c20b96d8c617748aaf1c16021760cd27fcb8cb75"
   integrity sha1-wguW2MYXdIqvHBYCF2DNJ/y4y3U=
 
+content-security-policy-builder@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/content-security-policy-builder/-/content-security-policy-builder-2.0.0.tgz#8749a1d542fcbe82237281ea9f716ce68b394dd2"
+  integrity sha512-j+Nhmj1yfZAikJLImCvPJFE29x/UuBi+/MWqggGGc515JKaZrjuei2RhULJmy0MsstW3E3htl002bwmBNMKr7w==
+
 convert-source-map@^1.1.0, convert-source-map@^1.5.1:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.6.0.tgz#51b537a8c43e0f04dec1993bffcdd504e758ac20"
@@ -4137,6 +4142,13 @@ parcel-bundler@^1.11.0:
     terser "^3.7.3"
     v8-compile-cache "^2.0.0"
     ws "^5.1.1"
+
+parcel-plugin-interpolate-html@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/parcel-plugin-interpolate-html/-/parcel-plugin-interpolate-html-1.0.0.tgz#b154d6fb3b606022231387c25d49e01fc2bd109a"
+  integrity sha512-LCIUdOpKkYu/PAVLzKXv6Med4kfYpXaqEjsrvHdb2LEt3wM55a3kur/chkAyOnglpGEq2ZvhHqlp5tbR3kEq5w==
+  dependencies:
+    escape-string-regexp "^1.0.5"
 
 parent-module@^1.0.0:
   version "1.0.0"
