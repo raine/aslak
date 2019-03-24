@@ -51,7 +51,9 @@ const MessageCount = React.memo(({ messages, users }) => (
 MessageCount.displayName = 'MessageCount'
 
 const Channel = React.memo(({ id, name, messages = [] }) => {
-  const { timeframe, interval, slackClient } = useContext(State)
+  const { timeframe, interval, slackClient, channelListType } = useContext(
+    State
+  )
   const [animateEmoji, setAnimateEmoji] = useState(false)
   const [dimensions, setDimensions] = useState({})
   const { width } = dimensions
@@ -102,6 +104,10 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
   useEffect(() => {
     initChannelFirstSeen(id)
   }, [])
+
+  // Keep discover view more interesting by hiding channels without activity
+  if (channelListType === 'DISCOVER' && messagesWithinTimeframe.length === 0)
+    return null
 
   return (
     <div

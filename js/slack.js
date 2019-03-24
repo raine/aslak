@@ -155,7 +155,7 @@ const getChannels = (getAll) => () =>
   ).then(
     _.pipe([
       _.orderBy((x) => x.num_members, ['desc']),
-      _.map(_.pick(['id', 'name', 'is_member']))
+      _.map(_.pick(['id', 'name', 'is_member', 'num_members']))
     ])
   )
 
@@ -185,10 +185,14 @@ const streamChannelHistory = (getAllStreamed) => (params, channelId) =>
     'messages'
   ).map(sanitizeMessages(channelId))
 
-const streamChannelsHistory = (streamChannelHistory) => (params, channels) =>
+const streamChannelsHistory = (streamChannelHistory) => (
+  params,
+  channels,
+  concurrency = 2
+) =>
   K.sequentially(0, channels).flatMapConcurLimit(
     (c) => streamChannelHistory(params, c.id).map((xs) => [c.id, xs]),
-    2
+    concurrency
   )
 
 const getMessagePermaLink = (get) => (channel, message_ts) =>

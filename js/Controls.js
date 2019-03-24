@@ -14,7 +14,8 @@ const TIMEFRAMES = [
 
 const CHANNEL_SELECTION = [
   { key: 'MEMBER_OF', text: 'my channels' },
-  { key: 'POPULAR', text: 'popular channels' }
+  { key: 'POPULAR', text: 'popular channels' },
+  { key: 'DISCOVER', text: 'discover' }
 ]
 
 const ExpandIcon = () => (
@@ -39,14 +40,14 @@ const Controls = React.memo(
         <Dropdown
           options={CHANNEL_SELECTION}
           value={channelListType}
-          setValue={(value) => dispatch({ type: 'setChannelListType', value })}
+          setValue={(value) => dispatch('setChannelListType', value)}
         />
       </div>
       <div className="controls-right">
         <div
           title="Expand channels horizontally"
           className={classNames('expand', { active: expand })}
-          onClick={() => dispatch({ type: 'setExpand', value: !expand })}
+          onClick={() => dispatch('setExpand', !expand)}
         >
           <ExpandIcon />
         </div>
@@ -54,7 +55,7 @@ const Controls = React.memo(
           <Dropdown
             options={TIMEFRAMES}
             value={timeframe}
-            setValue={(value) => dispatch({ type: 'setTimeframe', value })}
+            setValue={(value) => dispatch('setTimeframe', value)}
           />
         </div>
       </div>
