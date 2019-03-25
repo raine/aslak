@@ -81,8 +81,8 @@ const fetchJSON = (...params) =>
       throw err
     })
 
-const get = (token, fetch) => (method, params) =>
-  fetch(
+const get = (token, fetchJSON) => (method, params) =>
+  fetchJSON(
     `https://slack.com/api/${method}?` + qs.stringify({ token, ...params }),
     {
       method: 'get',
@@ -95,7 +95,7 @@ const get = (token, fetch) => (method, params) =>
       body: json,
       next: next_cursor
         ? () =>
-            get(token, fetch)(method, {
+            get(token, fetchJSON)(method, {
               ...params,
               cursor: next_cursor
             })
