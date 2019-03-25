@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+. .env
+
+PUBLIC_URL="http://localhost:*" \
+CSP_CONTENT=$(node ./scripts/csp.js) \
+  parcel serve --no-cache index.html

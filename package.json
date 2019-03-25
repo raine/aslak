@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "parcel serve index.html",
+    "dev": "./scripts/dev",
     "build": "./scripts/build",
     "test:lint": "eslint js/",
     "test": "yarn test:lint"

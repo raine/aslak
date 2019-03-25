@@ -1,5 +1,6 @@
-/* global require */
+/* global require, process */
 const csp = require('content-security-policy-builder')
+const isLocalhost = process.env.PUBLIC_URL.includes('localhost')
 
 console.log(
   csp({
@@ -7,23 +8,23 @@ console.log(
       defaultSrc: [
         "'self'",
         'https://apis.google.com/',
-        'https://fonts.gstatic.com/'
+        'https://fonts.gstatic.com/',
+        isLocalhost ? "'unsafe-eval'" : ''
       ],
-      connectSrc: ['ws://localhost:*', 'https://slack.com'],
+      connectSrc: [isLocalhost ? 'ws://localhost:*' : '', 'https://slack.com'],
       imgSrc: [
-        'http://localhost:*',
         'https://*.slack-edge.com',
         'https://secure.gravatar.com',
         'https://files.slack.com',
         'https://slack-imgs.com',
-        'https://i2.wp.com/*.slack-edge.com;',
-        'https://pages.reaktor.com'
+        'https://i2.wp.com/*.slack-edge.com',
+        process.env.PUBLIC_URL
       ],
       styleSrc: [
         'https://fonts.googleapis.com',
-        'http://localhost:*',
-        'https://pages.reaktor.com',
-        "'sha256-deDIoPlRijnpfbTDYsK+8JmDfUBmpwpnb0L/SUV8NeU='",
+        process.env.PUBLIC_URL,
+        // For react-virtualized-auto-sizer
+        "'sha256-deDIoPlRijnpfbTDYsK+8JmDfUBmpwpnb0L/SUV8NeU='"
       ],
       objectSrc: "'none'"
     }
