@@ -17,7 +17,7 @@ console.log(
         'https://secure.gravatar.com',
         'https://files.slack.com',
         'https://slack-imgs.com',
-        'https://i2.wp.com/*.slack-edge.com',
+        'https://*.wp.com/*.slack-edge.com',
         process.env.PUBLIC_URL
       ],
       styleSrc: [
