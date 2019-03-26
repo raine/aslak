@@ -1,6 +1,6 @@
 # aslak
 
-A dashboard that helps you find interesting content in your Slack workspace.
+A dashboard that helps discover interesting content in your Slack workspace.
 
 ![](https://raine.github.io/aslak/screenshot.png)
 
