@@ -8,6 +8,9 @@ import React, {
 import { useSpring, animated } from 'react-spring'
 import slackdown from 'slackdown'
 import State from './Context'
+import * as _ from 'lodash/fp'
+import seq from './seq'
+import { pMap, then } from './promise'
 import xss from 'xss'
 
 import '../css/SlackMessage.scss'
@@ -32,14 +35,43 @@ const SlackMessageImage = React.memo((file) => {
 
 SlackMessageImage.displayName = 'SlackMessageImage'
 
+// slackdown returns html with user ids wrapped in <span
+// class="slack-user">..</span>
+const parseSlackUserIdsFromHtml = (html) => {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  return [...doc.querySelectorAll('.slack-user')].map(
+    ({ textContent }) => 'U' + textContent
+  )
+}
+
 const SlackMessage = React.memo(
   ({ isVisible, msg, scheduleUpdate, onFadeOutDone }) => {
     const { text, user: userId, datetime, files = [] } = msg
     const { slackClient, openMessageInSlack } = useContext(State)
+    const [mentionedUsersData, setMentionedUsersData] = useState([])
     const [user, setUser] = useState(null)
     const textHtml = useMemo(
-      () => ({ __html: xss(slackdown.parse(text).replace(/\n/g, '<br />')) }),
+      () =>
+        xss(slackdown.parse(text).replace(/\n/g, '<br />'), {
+          whiteList: {
+            ...xss.whiteList,
+            span: ['class'] // slackdown sets class on span
+          }
+        }),
       [text]
+    )
+    const textHtmlWithUsers = useMemo(
+      () =>
+        mentionedUsersData.reduce(
+          (html, user) =>
+            html.replace(
+              new RegExp(user.id.substr(1), 'g'),
+              user.profile.display_name_normalized
+            ),
+          textHtml
+        ),
+      [textHtml, mentionedUsersData]
     )
 
     useLayoutEffect(() => {
@@ -49,6 +81,15 @@ const SlackMessage = React.memo(
     useEffect(() => {
       slackClient.getUserInfoCached(userId).then(setUser)
     }, [setUser])
+
+    useEffect(() => {
+      seq(
+        textHtml,
+        parseSlackUserIdsFromHtml,
+        pMap(slackClient.getUserInfoCached),
+        then(setMentionedUsersData)
+      )
+    }, [textHtml])
 
     const props = useSpring({
       from: { opacity: 0 },
@@ -76,7 +117,10 @@ const SlackMessage = React.memo(
             <span className="sender">{user.profile.real_name}</span>
             <span className="timestamp">{datetime.toFormat('HH:mm')}</span>
           </div>
-          <div className="message-text" dangerouslySetInnerHTML={textHtml} />
+          <div
+            className="message-text"
+            dangerouslySetInnerHTML={{ __html: textHtmlWithUsers }}
+          />
           {files[0] && files[0].thumb_360 && (
             <SlackMessageImage {...files[0]} />
           )}

@@ -5,6 +5,7 @@
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0px 2px 15px 2px rgba(0, 0, 0, 0.25);
+
   .avatar-column {
     .avatar-background {
       display: inline-block;
@@ -45,6 +46,12 @@
   .message-text {
     margin-top: 2px;
     word-break: break-word;
+
+    .slack-user {
+      &:before {
+        content: '@';
+      }
+    }
   }
 
   .open-in-slack {
