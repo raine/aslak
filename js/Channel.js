@@ -50,6 +50,9 @@ const MessageCount = React.memo(({ messages, users }) => (
 
 MessageCount.displayName = 'MessageCount'
 
+const isMessageWithinInterval = (interval) => (msg) =>
+  msg.date >= interval.start && msg.date <= interval.end
+
 const Channel = React.memo(({ id, name, messages = [] }) => {
   const { timeframe, interval, slackClient, channelListType } = useContext(
     State
@@ -62,10 +65,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
     [interval, timeframe]
   )
   const messagesWithinTimeframe = useMemo(
-    () =>
-      messages.filter(
-        (m) => m.date >= interval.start && m.date <= interval.end
-      ),
+    () => messages.filter(isMessageWithinInterval(interval)),
     [messages, interval]
   )
   const activeUsersWithinTimeframe = useMemo(
