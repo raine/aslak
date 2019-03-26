@@ -159,9 +159,15 @@ const getChannels = (getAll) => () =>
     ])
   )
 
+const IGNORED_MESSAGE_SUBTYPES = [
+  'channel_join',
+  'channel_leave',
+  'bot_message'
+]
+
 const sanitizeMessages = (channelId) =>
   _.pipe([
-    _.reject((msg) => msg.subtype === 'bot_message'),
+    _.reject((msg) => IGNORED_MESSAGE_SUBTYPES.includes(msg.subtype)),
     _.map((msg) => {
       const datetime = fromSlackTimestamp(msg.ts)
       return {
