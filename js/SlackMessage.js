@@ -47,7 +47,7 @@ const SlackMessage = React.memo(
     }, [user])
 
     useEffect(() => {
-      slackClient.getUserInfo(userId).then(setUser)
+      slackClient.getUserInfoCached(userId).then(setUser)
     }, [setUser])
 
     const props = useSpring({

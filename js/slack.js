@@ -66,6 +66,7 @@ export const init = (token, cacheTTL = DEFAULT_TTL) => {
   api.getCachedTeamId = getCachedTeamId
   api.formatChannelLink = formatChannelLink
   api.getUserInfo = getUserInfo(api.get)
+  api.getUserInfoCached = pMemoize(api.getUserInfo, { maxAge: cacheTTL })
   return api
 }
 
