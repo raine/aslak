@@ -63,6 +63,7 @@ export const init = (token, cacheTTL = DEFAULT_TTL) => {
   api.formatChannelLink = formatChannelLink
   api.getUserInfo = getUserInfo(api.get)
   api.getUserInfoCached = pMemoize(api.getUserInfo, { maxAge: cacheTTL })
+  api.revokeToken = revokeToken(api.get, token)
   return api
 }
 
@@ -78,12 +79,13 @@ const fetchJSON = (...params) =>
       throw err
     })
 
-const get = (token, fetchJSON) => (method, params) =>
+const get = (token, fetchJSON) => (method, params, opts = {}) =>
   fetchJSON(
     `https://slack.com/api/${method}?` + qs.stringify({ token, ...params }),
     {
       method: 'get',
-      headers: X_WWW_FORM_URLENCODED
+      headers: X_WWW_FORM_URLENCODED,
+      ...opts
     }
   ).then((json) => {
     const next_cursor = _.get('response_metadata.next_cursor', json)
@@ -210,3 +212,6 @@ const formatChannelLink = (teamId, channelId) =>
 
 const getUserInfo = (get) => (user) =>
   get('users.info', { user }).then(_.get('body.user'))
+
+const revokeToken = (get, token) => () =>
+  get('auth.revoke', { token }, { keepalive: true })

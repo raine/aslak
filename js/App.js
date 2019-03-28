@@ -1,4 +1,10 @@
-import React, { Fragment, useState, useReducer, useMemo } from 'react'
+import React, {
+  Fragment,
+  useState,
+  useReducer,
+  useMemo,
+  useEffect
+} from 'react'
 import Background from './Background'
 import NewWindow from 'react-new-window'
 import ChannelsView from './ChannelsView'
@@ -85,6 +91,12 @@ const App = ({ slackToken }) => {
   })
 
   const dispatch = _.curry((type, value) => _dispatch({ type, value }))
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', () => {
+      slackClient.revokeToken()
+    })
+  }, [])
 
   return (
     <Fragment>
