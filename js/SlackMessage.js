@@ -35,14 +35,22 @@ const SlackMessageImage = React.memo((file) => {
 
 SlackMessageImage.displayName = 'SlackMessageImage'
 
+const parseHtmlToDoc = (html) =>
+  new DOMParser().parseFromString(html, 'text/html')
+
 // slackdown returns html with user ids wrapped in <span
 // class="slack-user">..</span>
-const parseSlackUserIdsFromHtml = (html) => {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(html, 'text/html')
-  return [...doc.querySelectorAll('.slack-user')].map(
+const parseSlackUserIdsFromHtml = (html) =>
+  [...parseHtmlToDoc(html).querySelectorAll('.slack-user')].map(
     ({ textContent }) => 'U' + textContent
   )
+
+const setHtmlLinksTargetBlank = (html) => {
+  const doc = parseHtmlToDoc(html)
+  doc
+    .querySelectorAll('a')
+    .forEach((node) => node.setAttribute('target', '_blank'))
+  return doc.body.innerHTML
 }
 
 const SlackMessage = React.memo(
@@ -53,12 +61,19 @@ const SlackMessage = React.memo(
     const [user, setUser] = useState(null)
     const textHtml = useMemo(
       () =>
-        xss(slackdown.parse(text).replace(/\n/g, '<br />'), {
-          whiteList: {
-            ...xss.whiteList,
-            span: ['class'] // slackdown sets class on span
-          }
-        }),
+        seq(
+          text,
+          slackdown.parse,
+          _.replace(/\n/g, '<br />'),
+          setHtmlLinksTargetBlank,
+          (html) =>
+            xss(html, {
+              whiteList: {
+                ...xss.whiteList,
+                span: ['class'] // slackdown sets class on span
+              }
+            })
+        ),
       [text]
     )
     const textHtmlWithUsers = useMemo(
