@@ -11,7 +11,6 @@ const REDIRECT_URI = `${location.protocol}//${location.host}${
 }`
 
 const SCOPES = ['channels:history', 'channels:read', 'emoji:read', 'users:read']
-const LS_ACCESS_TOKEN = 'slack_access_token'
 const LS_TEAM_ID = 'slack_team_id' // TODO: not necessary with team_id is an env variable
 export const CLIENT_ID = process.env.SLACK_CLIENT_ID
 export const TEAM_ID = process.env.SLACK_TEAM_ID
@@ -20,8 +19,6 @@ const X_WWW_FORM_URLENCODED = {
   'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
 }
 
-export const getCachedToken = () => localStorage.getItem(LS_ACCESS_TOKEN)
-
 export const getTokenWithCode = () => {
   const { search } = window.location
   const query = qs.parse(search.replace(/^\?/, ''))
@@ -29,7 +26,6 @@ export const getTokenWithCode = () => {
     ? oauthAccess(CLIENT_ID, CLIENT_SECRET, query.code)
         .then((res) => {
           const baseUrl = window.location.href.replace(/\?.*/, '')
-          localStorage.setItem(LS_ACCESS_TOKEN, res.access_token)
           localStorage.setItem(LS_TEAM_ID, res.team_id)
           window.history.replaceState(
             null,

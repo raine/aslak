@@ -5,7 +5,7 @@ import App from './App'
 
 slack.getTokenWithCode().then((token) => {
   render(
-    <App slackToken={token || slack.getCachedToken()} />,
+    <App slackToken={token} />,
     document.getElementById('root')
   )
 })
