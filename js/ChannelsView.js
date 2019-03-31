@@ -72,9 +72,12 @@ const ChannelsView = React.memo(({ slackClient, dispatch }) => {
           expand
         }}
       />
-      {channels.length > 0 && (
-        <Channels channels={channels} messages={messages} expand={expand} />
-      )}
+      <Channels
+        channels={channels}
+        messages={messages}
+        expand={expand}
+        interval={interval}
+      />
     </Fragment>
   )
 })
