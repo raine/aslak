@@ -23,5 +23,9 @@
     "react": {
       "version": "detect"
     }
+  },
+  "globals": {
+    "process": "readonly",
+    "require": "readonly"
   }
 }

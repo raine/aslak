@@ -1,4 +1,3 @@
-/* global require, process */
 const csp = require('content-security-policy-builder')
 const isLocalhost = process.env.PUBLIC_URL.includes('localhost')
 

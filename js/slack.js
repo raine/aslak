@@ -1,5 +1,3 @@
-/* global process */
-
 import qs from 'querystring'
 import * as _ from 'lodash/fp'
 import { fromSlackTimestamp } from './time'
