@@ -49,7 +49,7 @@ const Plot = React.memo(
     yDomain,
     xScale,
     data,
-    messagesWithinTimeframe
+    messages
   }) => {
     const { openMessageInSlack, timeframe, interval } = useContext(State)
     const [msgNearestToCursor, setMsgNearestToCursor] = useState(null)
@@ -71,13 +71,13 @@ const Plot = React.memo(
     }, [msgNearestToCursor, data])
 
     const onPlotMouseMove = useCallback((ev) => {
-      if (!messagesWithinTimeframe.length) return
+      if (!messages.length) return
       const el = ev.currentTarget
       const elDomRect = el.getBoundingClientRect()
       const mouseX = ev.clientX - elDomRect.left - margin.left
       const mouseDate = xScale.invert(mouseX)
       const msg = findMessageClosestToTimestamp(
-        messagesWithinTimeframe,
+        messages,
         mouseDate.getTime()
       )
       setMsgNearestToCursor(
@@ -87,7 +87,7 @@ const Plot = React.memo(
           ? msg
           : null
       )
-    }, [messagesWithinTimeframe, xScale])
+    }, [messages, xScale])
 
     return (
       <XYPlot

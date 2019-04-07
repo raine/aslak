@@ -50,9 +50,6 @@ const MessageCount = React.memo(({ messages, users }) => (
 
 MessageCount.displayName = 'MessageCount'
 
-const isMessageWithinInterval = (interval) => (msg) =>
-  msg.date >= interval.start && msg.date <= interval.end
-
 const Channel = React.memo(({ id, name, messages = [] }) => {
   const { timeframe, interval, slackClient, channelListType } = useContext(
     State
@@ -64,22 +61,14 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
     () => makeTicks(interval.start, interval.end, dataTickStep(timeframe)),
     [interval, timeframe]
   )
-  const messagesWithinTimeframe = useMemo(
-    () => messages.filter(isMessageWithinInterval(interval)),
-    [messages, interval]
+  const activeUsers = useMemo(
+    () => messages.reduce((set, msg) => set.add(msg.user), new Set()),
+    [messages]
   )
-  const activeUsersWithinTimeframe = useMemo(
-    () =>
-      messagesWithinTimeframe.reduce(
-        (set, msg) => set.add(msg.user),
-        new Set()
-      ),
-    [messagesWithinTimeframe]
-  )
-  const data = useMemo(
-    () => toActivityData(dataTicks, messagesWithinTimeframe),
-    [dataTicks, messagesWithinTimeframe]
-  )
+  const data = useMemo(() => toActivityData(dataTicks, messages), [
+    dataTicks,
+    messages
+  ])
   const yMax = _.maxBy((obj) => obj.y, data).y
   const yDomain = [0, yMax === 0 ? 1 : yMax]
   const xDomain = [_.head(data).x, _.last(data).x]
@@ -106,8 +95,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
   }, [])
 
   // Keep discover view more interesting by hiding channels without activity
-  if (channelListType === 'DISCOVER' && messagesWithinTimeframe.length === 0)
-    return null
+  if (channelListType === 'DISCOVER' && messages.length === 0) return null
 
   return (
     <div
@@ -129,11 +117,8 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
         >
           #{name}
         </a>
-        {messagesWithinTimeframe.length > 0 ? (
-          <MessageCount
-            messages={messagesWithinTimeframe}
-            users={activeUsersWithinTimeframe}
-          />
+        {messages.length > 0 ? (
+          <MessageCount messages={messages} users={activeUsers} />
         ) : null}
       </div>
       <div className="plot-container">
@@ -144,7 +129,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
                 parentWidth={width}
                 plotMargin={PLOT_MARGIN}
                 xScale={xScale}
-                messages={messagesWithinTimeframe}
+                messages={messages}
                 animateEmoji={animateEmoji}
               />
               <Plot
@@ -156,7 +141,7 @@ const Channel = React.memo(({ id, name, messages = [] }) => {
                   yDomain,
                   xScale,
                   data,
-                  messagesWithinTimeframe
+                  messages
                 }}
               />
             </Fragment>
