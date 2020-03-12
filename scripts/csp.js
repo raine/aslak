@@ -17,6 +17,7 @@ console.log(
         'https://files.slack.com',
         'https://slack-imgs.com',
         'https://*.wp.com/*.slack-edge.com',
+        'https://*.slack.com',
         process.env.PUBLIC_URL
       ],
       styleSrc: [
