@@ -28,7 +28,7 @@
     "kefir": "^3.8.6",
     "lodash": "^4.17.11",
     "lscache": "^1.3.0",
-    "luxon": "^1.11.1",
+    "luxon": "^1.28.1",
     "memoizee": "^0.4.14",
     "parcel-bundler": "^1.11.0",
     "parcel-plugin-interpolate-html": "^1.0.0",
